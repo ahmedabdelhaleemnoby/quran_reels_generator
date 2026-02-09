@@ -23,21 +23,15 @@ class QuranGeneratorScreen extends ConsumerStatefulWidget {
 }
 
 class _QuranGeneratorScreenState extends ConsumerState<QuranGeneratorScreen> {
-  Reciter? _selectedReciter;
-  Surah? _selectedSurah;
-  FilterTheme _selectedFilter = FilterThemes.all.first;
-
   final _fromController = TextEditingController(text: '1');
   final _toController = TextEditingController(text: '1');
   final _durationController = TextEditingController(text: '15');
-
+  
+  Reciter? _selectedReciter;
+  Surah? _selectedSurah;
+  FilterTheme _selectedFilter = FilterThemes.all.first;
   VideoPlayerController? _videoController;
   String? _customAudioPath;
-
-  @override
-  void initState() {
-    super.initState();
-  }
 
   @override
   void dispose() {
@@ -55,6 +49,7 @@ class _QuranGeneratorScreenState extends ConsumerState<QuranGeneratorScreen> {
     );
 
     if (result != null && result.files.single.path != null) {
+      if (!mounted) return;
       setState(() {
         _customAudioPath = result.files.single.path;
       });
@@ -210,11 +205,6 @@ class _QuranGeneratorScreenState extends ConsumerState<QuranGeneratorScreen> {
     );
   }
 
-        ),
-      ],
-    );
-  }
-
   Widget _buildChipToggle(String label, bool value, ValueChanged<bool> onChanged) {
     return FilterChip(
       label: Text(label, style: const TextStyle(fontSize: 12)),
@@ -265,7 +255,7 @@ class _QuranGeneratorScreenState extends ConsumerState<QuranGeneratorScreen> {
           });
         }
         return DropdownButtonFormField<Reciter>(
-          value: _selectedReciter,
+          initialValue: _selectedReciter,
           items: reciters
               .map(
                 (reciter) => DropdownMenuItem(
@@ -316,7 +306,7 @@ class _QuranGeneratorScreenState extends ConsumerState<QuranGeneratorScreen> {
           });
         }
         return DropdownButtonFormField<Surah>(
-          value: _selectedSurah,
+          initialValue: _selectedSurah,
           items: surahs
               .map(
                 (surah) => DropdownMenuItem(
@@ -477,7 +467,7 @@ class _QuranGeneratorScreenState extends ConsumerState<QuranGeneratorScreen> {
         const Text('زخرفة الخلفية:', style: TextStyle(fontSize: 12, color: Colors.grey)),
         const SizedBox(height: 8),
         DropdownButtonFormField<DecorationPattern>(
-          value: _selectedFilter.decorationPattern,
+          initialValue: _selectedFilter.decorationPattern,
           items: DecorationPattern.values.map((p) {
             String label = 'بدون';
             if (p == DecorationPattern.hexagon) label = 'شبكة (Hex)';

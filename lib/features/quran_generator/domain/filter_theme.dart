@@ -76,6 +76,7 @@ class FilterTheme {
     bool? showSurahName,
     bool? showAyahNumber,
     bool? showReciterName,
+    DecorationPattern? decorationPattern,
   }) {
     return FilterTheme(
       id: id ?? this.id,
@@ -98,6 +99,7 @@ class FilterTheme {
       showSurahName: showSurahName ?? this.showSurahName,
       showAyahNumber: showAyahNumber ?? this.showAyahNumber,
       showReciterName: showReciterName ?? this.showReciterName,
+      decorationPattern: decorationPattern ?? this.decorationPattern,
     );
   }
 }
