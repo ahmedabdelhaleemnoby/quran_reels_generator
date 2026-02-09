@@ -15,7 +15,7 @@ class FilterTheme {
   final Color? backgroundColor;
   final Color? secondaryColor;
   final List<Color>? gradientColors;
-  final String? backgroundPath;
+  final List<String>? backgroundPaths;
   final String fontFamily;
   final double fontSize;
   final Color textColor;
@@ -45,7 +45,7 @@ class FilterTheme {
     this.backgroundColor,
     this.secondaryColor,
     this.gradientColors,
-    this.backgroundPath,
+    this.backgroundPaths,
     this.lineSpacing = 12,
     this.letterSpacing,
     this.highlightColor,
@@ -62,7 +62,7 @@ class FilterTheme {
     Color? backgroundColor,
     Color? secondaryColor,
     List<Color>? gradientColors,
-    String? backgroundPath,
+    List<String>? backgroundPaths,
     String? fontFamily,
     double? fontSize,
     Color? textColor,
@@ -85,7 +85,7 @@ class FilterTheme {
       backgroundColor: backgroundColor ?? this.backgroundColor,
       secondaryColor: secondaryColor ?? this.secondaryColor,
       gradientColors: gradientColors ?? this.gradientColors,
-      backgroundPath: backgroundPath ?? this.backgroundPath,
+      backgroundPaths: backgroundPaths ?? this.backgroundPaths,
       fontFamily: fontFamily ?? this.fontFamily,
       fontSize: fontSize ?? this.fontSize,
       textColor: textColor ?? this.textColor,
@@ -149,6 +149,32 @@ class FilterThemes {
       textPosition: TextPosition.center,
       textAnimation: TextAnimation.none,
       lineSpacing: 10,
+    ),
+    FilterTheme(
+      id: 'mountain_serenity',
+      name: 'جمال الجبال',
+      backgroundType: BackgroundType.videoFile,
+      fontFamily: 'Amiri',
+      fontSize: 60,
+      textColor: Color(0xFFF0F0F0),
+      strokeColor: Color(0xFF1A3A5A),
+      strokeWidth: 2.0,
+      textPosition: TextPosition.center,
+      textAnimation: TextAnimation.fade,
+      lineSpacing: 16,
+    ),
+    FilterTheme(
+      id: 'forest_echo',
+      name: 'سكينة الغابة',
+      backgroundType: BackgroundType.videoFile,
+      fontFamily: 'Amiri',
+      fontSize: 58,
+      textColor: Color(0xFFE8F5E9),
+      strokeColor: Color(0xFF1B5E20),
+      strokeWidth: 2.0,
+      textPosition: TextPosition.bottom,
+      textAnimation: TextAnimation.fade,
+      lineSpacing: 14,
     ),
   ];
 }

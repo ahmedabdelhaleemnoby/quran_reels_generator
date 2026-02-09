@@ -10,6 +10,7 @@ class GenerationRequest {
   final int durationSeconds;
   final FilterTheme filter;
   final String? customAudioPath;
+  final List<String>? backgroundPaths;
 
   const GenerationRequest({
     required this.reciter,
@@ -19,5 +20,6 @@ class GenerationRequest {
     required this.durationSeconds,
     required this.filter,
     this.customAudioPath,
+    this.backgroundPaths,
   });
 }

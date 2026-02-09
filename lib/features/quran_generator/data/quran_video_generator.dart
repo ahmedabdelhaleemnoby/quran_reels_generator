@@ -71,7 +71,7 @@ class QuranVideoGenerator {
     );
 
     onProgress?.call(0.65, 'تجهيز الخلفية');
-    final backgroundFile = await _resolveBackground(request.filter, tempDir);
+    final backgroundFiles = await _resolveBackground(request.filter, tempDir);
 
     onProgress?.call(0.75, 'تصميم آيات القرآن');
     final textImages = await _textRender.renderAyahImages(
@@ -91,7 +91,7 @@ class QuranVideoGenerator {
       textImages: textImages,
       durations: audioTrack.ayahDurations,
       outputDir: outputDir,
-      backgroundFile: backgroundFile,
+      backgroundFiles: backgroundFiles,
       width: targetWidth,
       height: targetHeight,
     );
@@ -108,24 +108,25 @@ class QuranVideoGenerator {
     }
   }
 
-  Future<File?> _resolveBackground(FilterTheme filter, Directory tempDir) async {
+  Future<List<File>?> _resolveBackground(FilterTheme filter, Directory tempDir) async {
     if (filter.backgroundType == BackgroundType.solidColor) {
       return null;
     }
 
     if (filter.backgroundType == BackgroundType.gradientImage) {
-      return _backgroundService.createGradientBackground(
+      final file = await _backgroundService.createGradientBackground(
         outputDir: tempDir,
         width: targetWidth,
         height: targetHeight,
         colors: filter.gradientColors ?? [Colors.black, Colors.blueGrey],
       );
+      return [file];
     }
 
     if (filter.backgroundType == BackgroundType.imageFile ||
         filter.backgroundType == BackgroundType.videoFile) {
-      if (filter.backgroundPath != null) {
-        return File(filter.backgroundPath!);
+      if (filter.backgroundPaths != null && filter.backgroundPaths!.isNotEmpty) {
+        return filter.backgroundPaths!.map((p) => File(p)).toList();
       }
     }
 

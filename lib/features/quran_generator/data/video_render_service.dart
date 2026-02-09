@@ -19,7 +19,7 @@ class VideoRenderService {
     required List<File> textImages,
     required List<double> durations,
     required Directory outputDir,
-    File? backgroundFile,
+    List<File>? backgroundFiles,
     required int width,
     required int height,
     int fps = 30,
@@ -32,69 +32,56 @@ class VideoRenderService {
     final totalDuration = durations.fold(0.0, (sum, d) => sum + d);
     final args = <String>[];
 
-    // Input 0: Background
+    // Background Inputs
     if (filter.backgroundType == BackgroundType.solidColor) {
       final color = filter.backgroundColor ?? const Color(0xFF000000);
       args.addAll([
-        '-f',
-        'lavfi',
-        '-i',
-        'color=c=${_colorToHex(color)}:s=${width}x$height:r=$fps:d=$totalDuration',
-      ]);
-    } else if (filter.backgroundType == BackgroundType.gradientImage ||
-        filter.backgroundType == BackgroundType.imageFile) {
-      if (backgroundFile == null) {
-        throw ProcessingException('Background image is missing');
-      }
-      args.addAll([
-        '-loop',
-        '1',
-        '-i',
-        backgroundFile.path,
+        '-f', 'lavfi',
+        '-i', 'color=c=${_colorToHex(color)}:s=${width}x$height:r=$fps:d=$totalDuration',
       ]);
     } else if (filter.backgroundType == BackgroundType.videoFile) {
-      if (backgroundFile == null) {
+      if (backgroundFiles == null || backgroundFiles.isEmpty) {
         throw ProcessingException('Background video is missing');
       }
       args.addAll([
-        '-stream_loop',
-        '-1',
-        '-i',
-        backgroundFile.path,
+        '-stream_loop', '-1',
+        '-i', backgroundFiles.first.path,
       ]);
+    } else {
+      // Image or Gradient (Slideshow or single)
+      if (backgroundFiles == null || backgroundFiles.isEmpty) {
+        throw ProcessingException('Background image is missing');
+      }
+      for (final file in backgroundFiles) {
+        args.addAll(['-loop', '1', '-i', file.path]);
+      }
     }
 
-    // Input 1..N: Text Images
+    // Text Image Inputs
+    final bgInputCount = (filter.backgroundType == BackgroundType.solidColor || 
+                          filter.backgroundType == BackgroundType.videoFile) ? 1 : (backgroundFiles?.length ?? 1);
+    
     for (final image in textImages) {
       args.addAll(['-i', image.path]);
     }
 
-    // Last Input: Audio
+    // Audio Input
     args.addAll(['-i', audioFile.path]);
 
-    final audioInputIdx = textImages.length + 1;
+    final audioInputIdx = bgInputCount + textImages.length;
 
     args.addAll([
       '-filter_complex',
-      _buildFilterComplex(filter, textImages.length, durations, width, height),
-      '-map',
-      '[v_out]', // Map the labelled output from filter_complex
-      '-map',
-      '$audioInputIdx:a', // Map the audio from the last input
-      '-t',
-      totalDuration.toStringAsFixed(2),
-      '-r',
-      fps.toString(),
-      '-c:v',
-      'mpeg4',
-      '-q:v',
-      '5',
-      '-pix_fmt',
-      'yuv420p',
-      '-c:a',
-      'aac',
-      '-af',
-      'apad=pad_dur=${totalDuration.toStringAsFixed(2)}', // Ensure audio matches video exactly
+      _buildFilterComplex(filter, bgInputCount, textImages.length, durations, width, height),
+      '-map', '[v_out]',
+      '-map', '$audioInputIdx:a',
+      '-t', totalDuration.toStringAsFixed(2),
+      '-r', fps.toString(),
+      '-c:v', 'mpeg4',
+      '-q:v', '5',
+      '-pix_fmt', 'yuv420p',
+      '-c:a', 'aac',
+      '-af', 'apad=pad_dur=${totalDuration.toStringAsFixed(2)}',
       '-y',
       outputPath,
     ]);
@@ -109,56 +96,63 @@ class VideoRenderService {
     return File(outputPath);
   }
 
-  String _buildFilterComplex(FilterTheme filter, int ayahCount,
+  String _buildFilterComplex(FilterTheme filter, int bgCount, int ayahCount,
       List<double> durations, int width, int height) {
     final buffer = StringBuffer();
-    // Start with background scaling
-    buffer.write('[0:v]scale=$width:$height,setsar=1[v_bg];');
+    final totalDuration = durations.fold(0.0, (sum, d) => sum + d);
 
-    // Add Decoration Pattern if any
-    var currentBg = 'v_bg';
+    // 1. Build Background Source
+    if (bgCount > 1) {
+      // Slideshow logic
+      final perImageDuration = totalDuration / bgCount;
+      buffer.write('[0:v]scale=$width:$height,setsar=1[v_slideshow0];');
+      for (var i = 1; i < bgCount; i++) {
+        final startTime = i * perImageDuration;
+        final prevLabel = 'v_slideshow${i - 1}';
+        final nextLabel = 'v_slideshow$i';
+        buffer.write('[$prevLabel][$i:v]scale=$width:$height,setsar=1,overlay=enable=\'gte(t,$startTime)\'[$nextLabel];');
+      }
+      buffer.write('[v_slideshow${bgCount - 1}][v_bg_base];');
+    } else {
+      // Single background
+      buffer.write('[0:v]scale=$width:$height,setsar=1[v_bg_base];');
+    }
+
+    // 2. Add Decoration Pattern
+    var currentBg = 'v_bg_base';
     if (filter.decorationPattern != DecorationPattern.none) {
       final decorLabel = 'v_decorated';
       switch (filter.decorationPattern) {
         case DecorationPattern.hexagon:
-          // Simulate hexagon/mesh with a grid filter
           buffer.write('[$currentBg]drawgrid=w=100:h=100:t=1:c=white@0.1[$decorLabel];');
           break;
         case DecorationPattern.dots:
-          // Add some grain/dots
           buffer.write('[$currentBg]noise=alls=20:allf=t+u[$decorLabel];');
           break;
         case DecorationPattern.islamic:
-          // Vignette for a more spiritual feel
           buffer.write('[$currentBg]vignette=angle=0.5[$decorLabel];');
           break;
         default:
           buffer.write('[$currentBg]copy[$decorLabel];');
       }
       currentBg = decorLabel;
-    } else {
-      buffer.write('[$currentBg]copy[v_decorated];');
-      currentBg = 'v_decorated';
     }
 
-    buffer.write('[$currentBg]copy[v0];');
-
+    // 3. Overlay Ayah Text Images
     var currentTime = 0.0;
+    var lastVLabel = currentBg;
     for (var i = 0; i < ayahCount; i++) {
-      final inputIdx = i + 1;
+      final inputIdx = bgCount + i;
       final startTime = currentTime;
       final endTime = currentTime + durations[i];
       currentTime = endTime;
 
-      final prevLabel = 'v$i';
-      final nextLabel = i == ayahCount - 1 ? 'v_out' : 'v${i + 1}';
-
-      final targetY = filter.textPosition == TextPosition.center
-          ? '(H-h)/2'
-          : '(H-h-200)';
+      final nextLabel = i == ayahCount - 1 ? 'v_out' : 'v_ayah$i';
+      final targetY = filter.textPosition == TextPosition.center ? '(H-h)/2' : '(H-h-200)';
 
       buffer.write(
-          '[$prevLabel][$inputIdx:v]overlay=x=(W-w)/2:y=$targetY:enable=\'between(t,$startTime,$endTime)\'[$nextLabel];');
+          '[$lastVLabel][$inputIdx:v]overlay=x=(W-w)/2:y=$targetY:enable=\'between(t,$startTime,$endTime)\'[$nextLabel];');
+      lastVLabel = nextLabel;
     }
 
     return buffer.toString();

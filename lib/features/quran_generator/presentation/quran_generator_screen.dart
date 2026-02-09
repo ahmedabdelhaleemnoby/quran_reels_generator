@@ -32,6 +32,7 @@ class _QuranGeneratorScreenState extends ConsumerState<QuranGeneratorScreen> {
   FilterTheme _selectedFilter = FilterThemes.all.first;
   VideoPlayerController? _videoController;
   String? _customAudioPath;
+  List<String> _selectedMediaPaths = [];
 
   @override
   void dispose() {
@@ -57,6 +58,42 @@ class _QuranGeneratorScreenState extends ConsumerState<QuranGeneratorScreen> {
         SnackBar(content: Text('تم اختيار الملف: ${result.files.single.name}')),
       );
     }
+  }
+
+  Future<void> _pickBackgroundMedia() async {
+    final result = await FilePicker.platform.pickFiles(
+      type: FileType.custom,
+      allowedExtensions: ['jpg', 'jpeg', 'png', 'mp4', 'mov'],
+      allowMultiple: true,
+    );
+
+    if (result != null) {
+      final paths = result.files.map((f) => f.path).whereType<String>().toList();
+      
+      // Determine if it's video or images
+      final hasVideo = paths.any((p) => p.endsWith('.mp4') || p.endsWith('.mov'));
+      
+      setState(() {
+        if (hasVideo) {
+          // If video, only take the first one
+          _selectedMediaPaths = [paths.first];
+          _selectedFilter = _selectedFilter.copyWith(backgroundType: BackgroundType.videoFile);
+        } else {
+          // If images, allow up to 10
+          _selectedMediaPaths = [..._selectedMediaPaths, ...paths].take(10).toList();
+          _selectedFilter = _selectedFilter.copyWith(backgroundType: BackgroundType.imageFile);
+        }
+      });
+    }
+  }
+
+  void _removeMedia(int index) {
+    setState(() {
+      _selectedMediaPaths.removeAt(index);
+      if (_selectedMediaPaths.isEmpty) {
+        _selectedFilter = _selectedFilter.copyWith(backgroundType: BackgroundType.solidColor);
+      }
+    });
   }
 
   Future<void> _initVideoPlayer(String path) async {
@@ -126,6 +163,10 @@ class _QuranGeneratorScreenState extends ConsumerState<QuranGeneratorScreen> {
               _buildSectionTitle('3. الفلاتر الجاهزة'),
               const SizedBox(height: 12),
               _buildFiltersGrid(),
+              const SizedBox(height: 24),
+              _buildSectionTitle('4. اختيار الخلفيات (حتى 10 صور أو فيديو)'),
+              const SizedBox(height: 12),
+              _buildMediaPicker(),
               const SizedBox(height: 24),
               _buildGenerateButton(generationState),
               const SizedBox(height: 16),
@@ -579,8 +620,9 @@ class _QuranGeneratorScreenState extends ConsumerState<QuranGeneratorScreen> {
       fromAyah: fromAyah,
       toAyah: toAyah,
       durationSeconds: duration,
-      filter: _selectedFilter,
+      filter: _selectedFilter.copyWith(backgroundPaths: _selectedMediaPaths),
       customAudioPath: _customAudioPath,
+      backgroundPaths: _selectedMediaPaths,
     );
 
     // Stop current video if any
@@ -622,5 +664,69 @@ class _QuranGeneratorScreenState extends ConsumerState<QuranGeneratorScreen> {
         );
       }
     }
+  }
+
+  Widget _buildMediaPicker() {
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(12),
+        child: Column(
+          children: [
+            ElevatedButton.icon(
+              onPressed: _pickBackgroundMedia,
+              icon: const Icon(Icons.add_photo_alternate),
+              label: const Text('إضافة صور أو فيديو'),
+            ),
+            if (_selectedMediaPaths.isNotEmpty) ...[
+              const SizedBox(height: 12),
+              SizedBox(
+                height: 100,
+                child: ListView.separated(
+                  scrollDirection: Axis.horizontal,
+                  itemCount: _selectedMediaPaths.length,
+                  separatorBuilder: (_, __) => const SizedBox(width: 8),
+                  itemBuilder: (context, index) {
+                    final path = _selectedMediaPaths[index];
+                    final isVideo = path.endsWith('.mp4') || path.endsWith('.mov');
+                    return Stack(
+                      children: [
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(8),
+                          child: Container(
+                            width: 100,
+                            height: 100,
+                            color: Colors.grey.shade200,
+                            child: isVideo
+                                ? const Center(child: Icon(Icons.videocam))
+                                : Image.file(File(path), fit: BoxFit.cover),
+                          ),
+                        ),
+                        Positioned(
+                          top: 2,
+                          right: 2,
+                          child: GestureDetector(
+                            onTap: () => _removeMedia(index),
+                            child: CircleAvatar(
+                              radius: 12,
+                              backgroundColor: Colors.red.withAlpha(200),
+                              child: const Icon(Icons.close, size: 16, color: Colors.white),
+                            ),
+                          ),
+                        ),
+                      ],
+                    );
+                  },
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'عدد الملفات: ${_selectedMediaPaths.length}/10',
+                style: const TextStyle(fontSize: 12, color: Colors.grey),
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
   }
 }

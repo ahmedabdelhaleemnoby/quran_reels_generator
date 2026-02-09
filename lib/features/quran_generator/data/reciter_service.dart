@@ -84,14 +84,14 @@ class ReciterService {
         directory: 'Alafasy_128kbps',
       ),
       Reciter(
-        id: 'Minshawi_Murattal_128kbps',
+        id: 'Minshawy_Murattal_128kbps',
         name: 'محمد صديق المنشاوي (مرتل)',
-        directory: 'Minshawi_Murattal_128kbps',
+        directory: 'Minshawy_Murattal_128kbps',
       ),
       Reciter(
-        id: 'Minshawi_Mujawwad_192kbps',
+        id: 'Minshawy_Mujawwad_192kbps',
         name: 'محمد صديق المنشاوي (مجود)',
-        directory: 'Minshawi_Mujawwad_192kbps',
+        directory: 'Minshawy_Mujawwad_192kbps',
       ),
       Reciter(
         id: 'Husary_128kbps',
@@ -99,14 +99,14 @@ class ReciterService {
         directory: 'Husary_128kbps',
       ),
       Reciter(
-        id: 'Sudais_128kbps',
+        id: 'Abdurrahmaan_As-Sudais_192kbps',
         name: 'عبد الرحمن السديس',
-        directory: 'Sudais_128kbps',
+        directory: 'Abdurrahmaan_As-Sudais_192kbps',
       ),
       Reciter(
-        id: 'Shuraym_128kbps',
+        id: 'Saood_ash-Shuraym_128kbps',
         name: 'سعود الشريم',
-        directory: 'Shuraym_128kbps',
+        directory: 'Saood_ash-Shuraym_128kbps',
       ),
       Reciter(
         id: 'Maher_AlMuaiqly_64kbps',
@@ -114,14 +114,14 @@ class ReciterService {
         directory: 'Maher_AlMuaiqly_64kbps',
       ),
       Reciter(
-        id: 'Shatri_128kbps',
+        id: 'Abu_Bakr_Ash-Shaatree_128kbps',
         name: 'أبو بكر الشاطري',
-        directory: 'Shatri_128kbps',
+        directory: 'Abu_Bakr_Ash-Shaatree_128kbps',
       ),
       Reciter(
-        id: 'Ajamy_128kbps',
+        id: 'Ahmed_ibn_Ali_al-Ajamy_128kbps_ketaballah.net',
         name: 'أحمد العجمي',
-        directory: 'Ajamy_128kbps',
+        directory: 'Ahmed_ibn_Ali_al-Ajamy_128kbps_ketaballah.net',
       ),
       Reciter(
         id: 'Ghamadi_40kbps',
