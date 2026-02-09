@@ -72,9 +72,15 @@ class VideoRenderService {
     // Last Input: Audio
     args.addAll(['-i', audioFile.path]);
 
+    final audioInputIdx = textImages.length + 1;
+
     args.addAll([
       '-filter_complex',
       _buildFilterComplex(filter, textImages.length, durations, width, height),
+      '-map',
+      '[v_out]', // Map the labelled output from filter_complex
+      '-map',
+      '$audioInputIdx:a', // Map the audio from the last input
       '-t',
       totalDuration.toStringAsFixed(2),
       '-r',
@@ -88,8 +94,7 @@ class VideoRenderService {
       '-c:a',
       'aac',
       '-af',
-      'apad',
-      '-shortest',
+      'apad=pad_dur=${totalDuration.toStringAsFixed(2)}', // Ensure audio matches video exactly
       '-y',
       outputPath,
     ]);
@@ -108,7 +113,35 @@ class VideoRenderService {
       List<double> durations, int width, int height) {
     final buffer = StringBuffer();
     // Start with background scaling
-    buffer.write('[0:v]scale=$width:$height,setsar=1[v0];');
+    buffer.write('[0:v]scale=$width:$height,setsar=1[v_bg];');
+
+    // Add Decoration Pattern if any
+    var currentBg = 'v_bg';
+    if (filter.decorationPattern != DecorationPattern.none) {
+      final decorLabel = 'v_decorated';
+      switch (filter.decorationPattern) {
+        case DecorationPattern.hexagon:
+          // Simulate hexagon/mesh with a grid filter
+          buffer.write('[$currentBg]drawgrid=w=100:h=100:t=1:c=white@0.1[$decorLabel];');
+          break;
+        case DecorationPattern.dots:
+          // Add some grain/dots
+          buffer.write('[$currentBg]noise=alls=20:allf=t+u[$decorLabel];');
+          break;
+        case DecorationPattern.islamic:
+          // Vignette for a more spiritual feel
+          buffer.write('[$currentBg]vignette=angle=0.5[$decorLabel];');
+          break;
+        default:
+          buffer.write('[$currentBg]copy[$decorLabel];');
+      }
+      currentBg = decorLabel;
+    } else {
+      buffer.write('[$currentBg]copy[v_decorated];');
+      currentBg = 'v_decorated';
+    }
+
+    buffer.write('[$currentBg]copy[v0];');
 
     var currentTime = 0.0;
     for (var i = 0; i < ayahCount; i++) {
@@ -118,18 +151,14 @@ class VideoRenderService {
       currentTime = endTime;
 
       final prevLabel = 'v$i';
-      final nextLabel = 'v${i + 1}';
+      final nextLabel = i == ayahCount - 1 ? 'v_out' : 'v${i + 1}';
 
       final targetY = filter.textPosition == TextPosition.center
           ? '(H-h)/2'
           : '(H-h-200)';
 
       buffer.write(
-          '[$prevLabel][$inputIdx:v]overlay=x=(W-w)/2:y=$targetY:enable=\'between(t,$startTime,$endTime)\'');
-      
-      if (i < ayahCount - 1) {
-        buffer.write('[$nextLabel];');
-      }
+          '[$prevLabel][$inputIdx:v]overlay=x=(W-w)/2:y=$targetY:enable=\'between(t,$startTime,$endTime)\'[$nextLabel];');
     }
 
     return buffer.toString();

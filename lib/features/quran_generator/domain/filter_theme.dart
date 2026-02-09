@@ -1,21 +1,19 @@
 import 'package:flutter/material.dart';
 
-enum BackgroundType {
-  solidColor,
-  gradientImage,
-  imageFile,
-  videoFile,
-}
+enum BackgroundType { solidColor, gradientImage, videoFile, imageFile }
 
 enum TextPosition { center, bottom }
 
-enum TextAnimation { none, fade, slideUp }
+enum TextAnimation { fade, slide, none }
+
+enum DecorationPattern { none, hexagon, dots, islamic }
 
 class FilterTheme {
   final String id;
   final String name;
   final BackgroundType backgroundType;
   final Color? backgroundColor;
+  final Color? secondaryColor;
   final List<Color>? gradientColors;
   final String? backgroundPath;
   final String fontFamily;
@@ -26,6 +24,12 @@ class FilterTheme {
   final TextPosition textPosition;
   final TextAnimation textAnimation;
   final double lineSpacing;
+  final double? letterSpacing;
+  final Color? highlightColor;
+  final bool showSurahName;
+  final bool showAyahNumber;
+  final bool showReciterName;
+  final DecorationPattern decorationPattern;
 
   const FilterTheme({
     required this.id,
@@ -39,10 +43,63 @@ class FilterTheme {
     required this.textPosition,
     required this.textAnimation,
     this.backgroundColor,
+    this.secondaryColor,
     this.gradientColors,
     this.backgroundPath,
     this.lineSpacing = 12,
+    this.letterSpacing,
+    this.highlightColor,
+    this.showSurahName = true,
+    this.showAyahNumber = true,
+    this.showReciterName = true,
+    this.decorationPattern = DecorationPattern.none,
   });
+
+  FilterTheme copyWith({
+    String? id,
+    String? name,
+    BackgroundType? backgroundType,
+    Color? backgroundColor,
+    Color? secondaryColor,
+    List<Color>? gradientColors,
+    String? backgroundPath,
+    String? fontFamily,
+    double? fontSize,
+    Color? textColor,
+    Color? strokeColor,
+    double? strokeWidth,
+    TextPosition? textPosition,
+    TextAnimation? textAnimation,
+    double? lineSpacing,
+    double? letterSpacing,
+    Color? highlightColor,
+    bool? showSurahName,
+    bool? showAyahNumber,
+    bool? showReciterName,
+  }) {
+    return FilterTheme(
+      id: id ?? this.id,
+      name: name ?? this.name,
+      backgroundType: backgroundType ?? this.backgroundType,
+      backgroundColor: backgroundColor ?? this.backgroundColor,
+      secondaryColor: secondaryColor ?? this.secondaryColor,
+      gradientColors: gradientColors ?? this.gradientColors,
+      backgroundPath: backgroundPath ?? this.backgroundPath,
+      fontFamily: fontFamily ?? this.fontFamily,
+      fontSize: fontSize ?? this.fontSize,
+      textColor: textColor ?? this.textColor,
+      strokeColor: strokeColor ?? this.strokeColor,
+      strokeWidth: strokeWidth ?? this.strokeWidth,
+      textPosition: textPosition ?? this.textPosition,
+      textAnimation: textAnimation ?? this.textAnimation,
+      lineSpacing: lineSpacing ?? this.lineSpacing,
+      letterSpacing: letterSpacing ?? this.letterSpacing,
+      highlightColor: highlightColor ?? this.highlightColor,
+      showSurahName: showSurahName ?? this.showSurahName,
+      showAyahNumber: showAyahNumber ?? this.showAyahNumber,
+      showReciterName: showReciterName ?? this.showReciterName,
+    );
+  }
 }
 
 class FilterThemes {
@@ -74,7 +131,7 @@ class FilterThemes {
       strokeColor: Color(0xFF1A1A1A),
       strokeWidth: 2.5,
       textPosition: TextPosition.bottom,
-      textAnimation: TextAnimation.slideUp,
+      textAnimation: TextAnimation.slide,
       lineSpacing: 12,
     ),
     FilterTheme(

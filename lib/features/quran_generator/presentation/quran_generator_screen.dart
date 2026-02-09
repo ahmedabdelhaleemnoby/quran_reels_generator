@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:video_player/video_player.dart';
@@ -28,9 +29,10 @@ class _QuranGeneratorScreenState extends ConsumerState<QuranGeneratorScreen> {
 
   final _fromController = TextEditingController(text: '1');
   final _toController = TextEditingController(text: '1');
-  final _durationController = TextEditingController(text: '20');
+  final _durationController = TextEditingController(text: '15');
 
   VideoPlayerController? _videoController;
+  String? _customAudioPath;
 
   @override
   void initState() {
@@ -46,12 +48,28 @@ class _QuranGeneratorScreenState extends ConsumerState<QuranGeneratorScreen> {
     super.dispose();
   }
 
+  Future<void> _pickCustomAudio() async {
+    final result = await FilePicker.platform.pickFiles(
+      type: FileType.audio,
+      allowMultiple: false,
+    );
+
+    if (result != null && result.files.single.path != null) {
+      setState(() {
+        _customAudioPath = result.files.single.path;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('تم اختيار الملف: ${result.files.single.name}')),
+      );
+    }
+  }
+
   Future<void> _initVideoPlayer(String path) async {
     _videoController?.dispose();
     _videoController = VideoPlayerController.file(File(path));
     await _videoController!.initialize();
-    await _videoController!.setLooping(true);
-    await _videoController!.play();
+    await _videoController!.setLooping(false);
+    // Don't auto-play
     if (mounted) {
       setState(() {});
     }
@@ -66,12 +84,16 @@ class _QuranGeneratorScreenState extends ConsumerState<QuranGeneratorScreen> {
     ref.listen<GenerationState>(generationProvider, (previous, next) {
       if (next.outputPath != null && next.outputPath != previous?.outputPath) {
         _initVideoPlayer(next.outputPath!);
+      } else if (next.outputPath == null && previous?.outputPath != null) {
+        _videoController?.dispose();
+        _videoController = null;
+        if (mounted) setState(() {});
       }
     });
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('مولد حالات قرآنيه'),
+        title: const Text('مولد حالات قرآنيه الاحترافي'),
         centerTitle: true,
       ),
       body: SafeArea(
@@ -80,18 +102,33 @@ class _QuranGeneratorScreenState extends ConsumerState<QuranGeneratorScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              _buildSectionTitle('الإعدادات الأساسية'),
+              _buildSectionTitle('1. اختيار السورة والقارئ'),
               const SizedBox(height: 12),
               _buildDropdownRow(
                 recitersAsync: recitersAsync,
                 surahsAsync: surahsAsync,
               ),
+              if (_selectedReciter?.id == 'custom_audio') ...[
+                const SizedBox(height: 12),
+                ElevatedButton.icon(
+                  onPressed: _pickCustomAudio,
+                  icon: const Icon(Icons.audio_file),
+                  label: Text(_customAudioPath == null
+                      ? 'اختر ملف الصوت من التليفون'
+                      : 'تغيير الملف: ${_customAudioPath!.split('/').last}'),
+                  style: ElevatedButton.styleFrom(backgroundColor: Colors.orange.shade50),
+                ),
+              ],
               const SizedBox(height: 16),
               _buildAyahInputs(),
-              const SizedBox(height: 16),
-              _buildDurationInput(),
               const SizedBox(height: 24),
-              _buildSectionTitle('الفلاتر الجاهزة'),
+              _buildSectionTitle('2. تخصيص المظهر (الاستايل)'),
+              const SizedBox(height: 12),
+              _buildStylingControls(),
+              const SizedBox(height: 12),
+              _buildDisplayToggles(),
+              const SizedBox(height: 24),
+              _buildSectionTitle('3. الفلاتر الجاهزة'),
               const SizedBox(height: 12),
               _buildFiltersGrid(),
               const SizedBox(height: 24),
@@ -110,11 +147,79 @@ class _QuranGeneratorScreenState extends ConsumerState<QuranGeneratorScreen> {
   }
 
   Widget _buildSectionTitle(String title) {
-    return Text(
-      title,
-      style: Theme.of(context).textTheme.titleMedium?.copyWith(
-            fontWeight: FontWeight.bold,
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
+      decoration: BoxDecoration(
+        color: Theme.of(context).primaryColor.withAlpha(20),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Text(
+        title,
+        style: Theme.of(context).textTheme.titleMedium?.copyWith(
+              fontWeight: FontWeight.bold,
+              color: Theme.of(context).primaryColor,
+            ),
+      ),
+    );
+  }
+
+  Widget _buildStylingControls() {
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(12),
+        child: Column(
+          children: [
+            _buildSliderRow(
+              'حجم الخط',
+              _selectedFilter.fontSize,
+              20, 120,
+              (val) => setState(() => _selectedFilter = _selectedFilter.copyWith(fontSize: val)),
+            ),
+            _buildSliderRow(
+              'تباعد الأسطر',
+              _selectedFilter.lineSpacing,
+              0, 100,
+              (val) => setState(() => _selectedFilter = _selectedFilter.copyWith(lineSpacing: val)),
+            ),
+            _buildSliderRow(
+              'تباعد الحروف',
+              _selectedFilter.letterSpacing ?? 0,
+              -5, 20,
+              (val) => setState(() => _selectedFilter = _selectedFilter.copyWith(letterSpacing: val)),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSliderRow(String label, double value, double min, double max, ValueChanged<double> onChanged) {
+    return Row(
+      children: [
+        SizedBox(width: 80, child: Text(label, style: const TextStyle(fontSize: 12))),
+        Expanded(
+          child: Slider(
+            value: value,
+            min: min,
+            max: max,
+            onChanged: onChanged,
           ),
+        ),
+        Text(value.toInt().toString(), style: const TextStyle(fontWeight: FontWeight.bold)),
+      ],
+    );
+  }
+
+        ),
+      ],
+    );
+  }
+
+  Widget _buildChipToggle(String label, bool value, ValueChanged<bool> onChanged) {
+    return FilterChip(
+      label: Text(label, style: const TextStyle(fontSize: 12)),
+      selected: value,
+      onSelected: onChanged,
     );
   }
 
@@ -155,12 +260,12 @@ class _QuranGeneratorScreenState extends ConsumerState<QuranGeneratorScreen> {
         if (_selectedReciter == null && reciters.isNotEmpty) {
           WidgetsBinding.instance.addPostFrameCallback((_) {
             if (mounted) {
-              setState(() => _selectedReciter = reciters.first);
+              setState(() => _selectedReciter = reciters.firstWhere((r) => r.id == 'Alafasy_128kbps', orElse: () => reciters.first));
             }
           });
         }
         return DropdownButtonFormField<Reciter>(
-          initialValue: _selectedReciter,
+          value: _selectedReciter,
           items: reciters
               .map(
                 (reciter) => DropdownMenuItem(
@@ -169,9 +274,12 @@ class _QuranGeneratorScreenState extends ConsumerState<QuranGeneratorScreen> {
                 ),
               )
               .toList(),
-          onChanged: (value) => setState(() => _selectedReciter = value),
+          onChanged: (value) => setState(() {
+            _selectedReciter = value;
+            if (value?.id != 'custom_audio') _customAudioPath = null;
+          }),
           decoration: const InputDecoration(
-            labelText: 'القارئ',
+            labelText: 'القارئ / المصدر',
             border: OutlineInputBorder(),
           ),
         );
@@ -208,7 +316,7 @@ class _QuranGeneratorScreenState extends ConsumerState<QuranGeneratorScreen> {
           });
         }
         return DropdownButtonFormField<Surah>(
-          initialValue: _selectedSurah,
+          value: _selectedSurah,
           items: surahs
               .map(
                 (surah) => DropdownMenuItem(
@@ -221,7 +329,7 @@ class _QuranGeneratorScreenState extends ConsumerState<QuranGeneratorScreen> {
             setState(() {
               _selectedSurah = value;
               _fromController.text = '1';
-              _toController.text = value?.numberOfAyahs.toString() ?? '1';
+              _toController.text = '1';
             });
           },
           decoration: const InputDecoration(
@@ -290,17 +398,6 @@ class _QuranGeneratorScreenState extends ConsumerState<QuranGeneratorScreen> {
     );
   }
 
-  Widget _buildDurationInput() {
-    return TextFormField(
-      controller: _durationController,
-      keyboardType: TextInputType.number,
-      decoration: const InputDecoration(
-        labelText: 'مدة الفيديو (بالثواني)',
-        border: OutlineInputBorder(),
-      ),
-    );
-  }
-
   Widget _buildFiltersGrid() {
     final width = MediaQuery.of(context).size.width;
     final crossAxisCount = width > 900 ? 3 : 2;
@@ -328,10 +425,11 @@ class _QuranGeneratorScreenState extends ConsumerState<QuranGeneratorScreen> {
   Widget _buildGenerateButton(GenerationState state) {
     return ElevatedButton.icon(
       onPressed: state.isGenerating ? null : _onGenerate,
-      icon: const Icon(Icons.movie_creation_outlined),
-      label: const Text('توليد الفيديو'),
+      icon: const Icon(Icons.auto_awesome),
+      label: const Text('بدء التوليد بخياراتك'),
       style: ElevatedButton.styleFrom(
-        padding: const EdgeInsets.symmetric(vertical: 16),
+        padding: const EdgeInsets.symmetric(vertical: 20),
+        textStyle: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
       ),
     );
   }
@@ -358,6 +456,49 @@ class _QuranGeneratorScreenState extends ConsumerState<QuranGeneratorScreen> {
     );
   }
 
+  Widget _buildDisplayToggles() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text('خيارات العرض:', style: TextStyle(fontSize: 12, color: Colors.grey)),
+        const SizedBox(height: 8),
+        Wrap(
+          spacing: 8,
+          children: [
+            _buildChipToggle('اسم السورة', _selectedFilter.showSurahName, 
+                (val) => setState(() => _selectedFilter = _selectedFilter.copyWith(showSurahName: val))),
+            _buildChipToggle('رقم الآية', _selectedFilter.showAyahNumber, 
+                (val) => setState(() => _selectedFilter = _selectedFilter.copyWith(showAyahNumber: val))),
+            _buildChipToggle('اسم القارئ', _selectedFilter.showReciterName, 
+                (val) => setState(() => _selectedFilter = _selectedFilter.copyWith(showReciterName: val))),
+          ],
+        ),
+        const SizedBox(height: 12),
+        const Text('زخرفة الخلفية:', style: TextStyle(fontSize: 12, color: Colors.grey)),
+        const SizedBox(height: 8),
+        DropdownButtonFormField<DecorationPattern>(
+          value: _selectedFilter.decorationPattern,
+          items: DecorationPattern.values.map((p) {
+            String label = 'بدون';
+            if (p == DecorationPattern.hexagon) label = 'شبكة (Hex)';
+            if (p == DecorationPattern.dots) label = 'نقاط (Grain)';
+            if (p == DecorationPattern.islamic) label = 'تظليل (Vignette)';
+            return DropdownMenuItem(value: p, child: Text(label));
+          }).toList(),
+          onChanged: (val) {
+            if (val != null) {
+              setState(() => _selectedFilter = _selectedFilter.copyWith(decorationPattern: val));
+            }
+          },
+          decoration: const InputDecoration(
+            isDense: true,
+            border: OutlineInputBorder(),
+          ),
+        ),
+      ],
+    );
+  }
+
   Widget _buildPreviewSection(String path) {
     final videoReady =
         _videoController != null && _videoController!.value.isInitialized;
@@ -365,19 +506,60 @@ class _QuranGeneratorScreenState extends ConsumerState<QuranGeneratorScreen> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         const SizedBox(height: 12),
-        _buildSectionTitle('المعاينة'),
+        _buildSectionTitle('المعاينة النهائية'),
         const SizedBox(height: 12),
         AspectRatio(
           aspectRatio: 9 / 16,
-          child: videoReady
-              ? VideoPlayer(_videoController!)
-              : const Center(child: CircularProgressIndicator()),
+          child: Stack(
+            alignment: Alignment.center,
+            children: [
+              if (videoReady) ...[
+                VideoPlayer(_videoController!),
+                GestureDetector(
+                  onTap: () {
+                    setState(() {
+                      _videoController!.value.isPlaying
+                          ? _videoController!.pause()
+                          : _videoController!.play();
+                    });
+                  },
+                  child: Container(
+                    color: Colors.transparent,
+                    child: Center(
+                      child: Icon(
+                        _videoController!.value.isPlaying
+                            ? Icons.pause_circle_filled
+                            : Icons.play_circle_filled,
+                        size: 64,
+                        color: Colors.white.withAlpha(150),
+                      ),
+                    ),
+                  ),
+                ),
+              ] else
+                const Center(child: CircularProgressIndicator()),
+            ],
+          ),
         ),
         const SizedBox(height: 12),
-        OutlinedButton.icon(
-          onPressed: _saveOutput,
-          icon: const Icon(Icons.download),
-          label: const Text('حفظ الفيديو'),
+        Row(
+          children: [
+            Expanded(
+              child: OutlinedButton.icon(
+                onPressed: _saveOutput,
+                icon: const Icon(Icons.download),
+                label: const Text('حفظ'),
+              ),
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: ElevatedButton.icon(
+                onPressed: _shareOutput,
+                icon: const Icon(Icons.share),
+                label: const Text('مشاركة'),
+              ),
+            ),
+          ],
         ),
         const SizedBox(height: 8),
         SelectableText(
@@ -390,6 +572,13 @@ class _QuranGeneratorScreenState extends ConsumerState<QuranGeneratorScreen> {
 
   Future<void> _onGenerate() async {
     if (_selectedReciter == null || _selectedSurah == null) return;
+    if (_selectedReciter!.id == 'custom_audio' && _customAudioPath == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('من فضلك اختر ملف الصوت أولاً')),
+      );
+      return;
+    }
+
     final fromAyah = int.tryParse(_fromController.text) ?? 1;
     final toAyah = int.tryParse(_toController.text) ?? fromAyah;
     final duration = int.tryParse(_durationController.text) ?? 20;
@@ -401,7 +590,11 @@ class _QuranGeneratorScreenState extends ConsumerState<QuranGeneratorScreen> {
       toAyah: toAyah,
       durationSeconds: duration,
       filter: _selectedFilter,
+      customAudioPath: _customAudioPath,
     );
+
+    // Stop current video if any
+    _videoController?.pause();
 
     await ref.read(generationProvider.notifier).generate(request);
   }
@@ -410,11 +603,34 @@ class _QuranGeneratorScreenState extends ConsumerState<QuranGeneratorScreen> {
     final outputPath = ref.read(generationProvider).outputPath;
     if (outputPath == null) return;
     final storage = StorageService();
-    final savedPath = await storage.saveToGallery(outputPath);
-    if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('تم الحفظ في: $savedPath')),
-      );
+    try {
+      final savedPath = await storage.saveToGallery(outputPath);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('تم الحفظ في: $savedPath')),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('خطأ في الحفظ: $e')),
+        );
+      }
+    }
+  }
+
+  Future<void> _shareOutput() async {
+    final outputPath = ref.read(generationProvider).outputPath;
+    if (outputPath == null) return;
+    final storage = StorageService();
+    try {
+      await storage.shareMedia(outputPath);
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('خطأ في المشاركة: $e')),
+        );
+      }
     }
   }
 }

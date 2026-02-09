@@ -57,15 +57,17 @@ class QuranVideoGenerator {
     final tempDir = await _storageService.getTempDirectory();
     final outputDir = await _storageService.getOutputDirectory();
 
-    onProgress?.call(0.35, 'تحميل التلاوة');
+    onProgress?.call(0.25, 'تجهيز ملفات الصوت');
     final audioTrack = await _audioService.buildAudioTrack(
       reciter: request.reciter,
       surahNumber: request.surah.number,
       fromAyah: request.fromAyah,
       toAyah: request.toAyah,
       outputDir: tempDir,
-      onProgress: (progress) =>
-          onProgress?.call(0.35 + progress * 0.25, 'تحميل التلاوة'),
+      customAudioFile: request.customAudioPath != null ? File(request.customAudioPath!) : null,
+      onProgress: (progress) {
+        onProgress?.call(0.25 + (progress * 0.35), 'جاري تحميل الصوت...');
+      },
     );
 
     onProgress?.call(0.65, 'تجهيز الخلفية');
@@ -75,6 +77,8 @@ class QuranVideoGenerator {
     final textImages = await _textRender.renderAyahImages(
       ayahs: ayahTexts,
       filter: request.filter,
+      surahName: request.surah.name,
+      fromAyah: request.fromAyah,
       outputDir: tempDir,
       width: targetWidth,
       height: targetHeight,

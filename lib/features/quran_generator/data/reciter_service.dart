@@ -74,6 +74,11 @@ class ReciterService {
         directory: 'Abdul_Basit_Murattal_192kbps',
       ),
       Reciter(
+        id: 'Abdul_Basit_Mujawwad_128kbps',
+        name: 'عبد الباسط عبد الصمد (مجود)',
+        directory: 'Abdul_Basit_Mujawwad_128kbps',
+      ),
+      Reciter(
         id: 'Alafasy_128kbps',
         name: 'مشاري راشد العفاسي',
         directory: 'Alafasy_128kbps',
@@ -84,9 +89,49 @@ class ReciterService {
         directory: 'Minshawi_Murattal_128kbps',
       ),
       Reciter(
+        id: 'Minshawi_Mujawwad_192kbps',
+        name: 'محمد صديق المنشاوي (مجود)',
+        directory: 'Minshawi_Mujawwad_192kbps',
+      ),
+      Reciter(
         id: 'Husary_128kbps',
         name: 'محمود خليل الحصري',
         directory: 'Husary_128kbps',
+      ),
+      Reciter(
+        id: 'Sudais_128kbps',
+        name: 'عبد الرحمن السديس',
+        directory: 'Sudais_128kbps',
+      ),
+      Reciter(
+        id: 'Shuraym_128kbps',
+        name: 'سعود الشريم',
+        directory: 'Shuraym_128kbps',
+      ),
+      Reciter(
+        id: 'Maher_AlMuaiqly_64kbps',
+        name: 'ماهر المعيقلي',
+        directory: 'Maher_AlMuaiqly_64kbps',
+      ),
+      Reciter(
+        id: 'Shatri_128kbps',
+        name: 'أبو بكر الشاطري',
+        directory: 'Shatri_128kbps',
+      ),
+      Reciter(
+        id: 'Ajamy_128kbps',
+        name: 'أحمد العجمي',
+        directory: 'Ajamy_128kbps',
+      ),
+      Reciter(
+        id: 'Ghamadi_40kbps',
+        name: 'سعد الغامدي',
+        directory: 'Ghamadi_40kbps',
+      ),
+      Reciter(
+        id: 'custom_audio',
+        name: 'رفع ملف صوتي من الجهاز ✨',
+        directory: 'custom',
       ),
     ];
   }

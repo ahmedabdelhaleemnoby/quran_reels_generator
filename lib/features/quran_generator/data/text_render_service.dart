@@ -11,15 +11,28 @@ class TextRenderService {
   Future<List<File>> renderAyahImages({
     required List<String> ayahs,
     required FilterTheme filter,
+    required String surahName,
+    required int fromAyah,
     required Directory outputDir,
     required int width,
     required int height,
   }) async {
     final files = <File>[];
     for (var i = 0; i < ayahs.length; i++) {
+      var displayText = ayahs[i];
+      final currentAyahNumber = fromAyah + i;
+      
+      var infoLine = '';
+      if (filter.showSurahName) infoLine += surahName;
+      if (filter.showAyahNumber) infoLine += ' - آية $currentAyahNumber';
+      
+      if (infoLine.isNotEmpty) {
+        displayText = '$displayText\n\n($infoLine)';
+      }
+
       final fileName = 'ayah_$i.png';
       final file = await _renderSingleImage(
-        text: ayahs[i],
+        text: displayText,
         filter: filter,
         outputDir: outputDir,
         width: width,
@@ -77,6 +90,7 @@ class TextRenderService {
             ..style = PaintingStyle.stroke
             ..strokeWidth = filter.strokeWidth
             ..color = filter.strokeColor,
+          letterSpacing: filter.letterSpacing,
         ))
        ..addText(text);
 
@@ -100,7 +114,10 @@ class TextRenderService {
         fontFamily: filter.fontFamily,
         height: filter.lineSpacing / filter.fontSize,
       ),
-    )..pushStyle(ui.TextStyle(color: filter.textColor))
+    )..pushStyle(ui.TextStyle(
+        color: filter.textColor,
+        letterSpacing: filter.letterSpacing,
+      ))
      ..addText(text);
 
     final fillParagraph = fillBuilder.build();

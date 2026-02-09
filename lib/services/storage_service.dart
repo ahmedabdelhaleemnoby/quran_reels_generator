@@ -30,9 +30,19 @@ class StorageService {
     }
   }
 
-  /// Get directory for saving processed media (Downloads folder)
+  /// Get directory for saving processed media (Downloads folder for Android, Documents for iOS)
   Future<Directory> getOutputDirectory() async {
     try {
+      if (Platform.isIOS) {
+        // downloads on iOS is restricted, use documents
+        final appDocDir = await getApplicationDocumentsDirectory();
+        final outputDir = Directory('${appDocDir.path}/${AppConstants.outputFolderName}');
+        if (!await outputDir.exists()) {
+          await outputDir.create(recursive: true);
+        }
+        return outputDir;
+      }
+
       Directory? downloadsDir;
       if (Platform.isAndroid) {
         downloadsDir = Directory('/storage/emulated/0/Download');
@@ -48,7 +58,7 @@ class StorageService {
       
       return outputDir;
     } catch (e) {
-      // Fallback to documents if downloads is inaccessible
+      // Fallback if anything fails
       final appDocDir = await getApplicationDocumentsDirectory();
       final outputDir = Directory('${appDocDir.path}/${AppConstants.outputFolderName}');
       if (!await outputDir.exists()) {

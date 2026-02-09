@@ -29,8 +29,17 @@ class AudioService {
     required int fromAyah,
     required int toAyah,
     required Directory outputDir,
+    File? customAudioFile,
     void Function(double progress)? onProgress,
   }) async {
+    if (reciter.id == 'custom_audio' && customAudioFile != null) {
+      final duration = await _getDuration(customAudioFile.path);
+      return AudioTrack(
+        file: customAudioFile,
+        ayahDurations: [duration], // Treat as one big ayah for now if custom
+      );
+    }
+
     final ayahFiles = <File>[];
     final ayahDurations = <double>[];
     final total = toAyah - fromAyah + 1;
@@ -42,7 +51,7 @@ class AudioService {
         surahNumber: surahNumber,
         ayahNumber: ayah,
       );
-      final file = await _downloadAyah(url, outputDir, surahNumber, ayah);
+      final file = await _downloadAyah(url, outputDir, surahNumber, ayah, reciter);
       ayahFiles.add(file);
       
       // Get duration of this ayah
@@ -72,9 +81,11 @@ class AudioService {
     Directory outputDir,
     int surahNumber,
     int ayahNumber,
+    Reciter reciter,
   ) async {
+    // Include reciter ID to avoid using wrong cached audio
     final fileName =
-        '${surahNumber.toString().padLeft(3, '0')}${ayahNumber.toString().padLeft(3, '0')}.mp3';
+        '${reciter.id}_${surahNumber.toString().padLeft(3, '0')}${ayahNumber.toString().padLeft(3, '0')}.mp3';
     final outputPath = p.join(outputDir.path, fileName);
     final file = File(outputPath);
     if (await file.exists()) {
