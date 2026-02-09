@@ -31,7 +31,6 @@ class _QuranGeneratorScreenState extends ConsumerState<QuranGeneratorScreen> {
   Surah? _selectedSurah;
   FilterTheme _selectedFilter = FilterThemes.all.first;
   VideoPlayerController? _videoController;
-  String? _customAudioPath;
   List<String> _selectedMediaPaths = [];
 
   @override
@@ -43,22 +42,6 @@ class _QuranGeneratorScreenState extends ConsumerState<QuranGeneratorScreen> {
     super.dispose();
   }
 
-  Future<void> _pickCustomAudio() async {
-    final result = await FilePicker.platform.pickFiles(
-      type: FileType.audio,
-      allowMultiple: false,
-    );
-
-    if (result != null && result.files.single.path != null) {
-      if (!mounted) return;
-      setState(() {
-        _customAudioPath = result.files.single.path;
-      });
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('تم اختيار الملف: ${result.files.single.name}')),
-      );
-    }
-  }
 
   Future<void> _pickBackgroundMedia() async {
     final result = await FilePicker.platform.pickFiles(
@@ -140,29 +123,18 @@ class _QuranGeneratorScreenState extends ConsumerState<QuranGeneratorScreen> {
                 recitersAsync: recitersAsync,
                 surahsAsync: surahsAsync,
               ),
-              if (_selectedReciter?.id == 'custom_audio') ...[
-                const SizedBox(height: 12),
-                ElevatedButton.icon(
-                  onPressed: _pickCustomAudio,
-                  icon: const Icon(Icons.audio_file),
-                  label: Text(_customAudioPath == null
-                      ? 'اختر ملف الصوت من التليفون'
-                      : 'تغيير الملف: ${_customAudioPath!.split('/').last}'),
-                  style: ElevatedButton.styleFrom(backgroundColor: Colors.orange.shade50),
-                ),
-              ],
               const SizedBox(height: 16),
               _buildAyahInputs(),
               const SizedBox(height: 24),
-              _buildSectionTitle('2. تخصيص المظهر (الاستايل)'),
+              _buildSectionTitle('2. الفلاتر الجاهزة'),
+              const SizedBox(height: 12),
+              _buildFiltersGrid(),
+              const SizedBox(height: 24),
+              _buildSectionTitle('3. تخصيص المظهر (الاستايل)'),
               const SizedBox(height: 12),
               _buildStylingControls(),
               const SizedBox(height: 12),
               _buildDisplayToggles(),
-              const SizedBox(height: 24),
-              _buildSectionTitle('3. الفلاتر الجاهزة'),
-              const SizedBox(height: 12),
-              _buildFiltersGrid(),
               const SizedBox(height: 24),
               _buildSectionTitle('4. اختيار الخلفيات (حتى 10 صور أو فيديو)'),
               const SizedBox(height: 12),
@@ -307,7 +279,6 @@ class _QuranGeneratorScreenState extends ConsumerState<QuranGeneratorScreen> {
               .toList(),
           onChanged: (value) => setState(() {
             _selectedReciter = value;
-            if (value?.id != 'custom_audio') _customAudioPath = null;
           }),
           decoration: const InputDecoration(
             labelText: 'القارئ / المصدر',
@@ -341,7 +312,7 @@ class _QuranGeneratorScreenState extends ConsumerState<QuranGeneratorScreen> {
               setState(() {
                 _selectedSurah = surahs.first;
                 _fromController.text = '1';
-                _toController.text = '1';
+                _toController.text = surahs.first.numberOfAyahs.toString();
               });
             }
           });
@@ -360,7 +331,7 @@ class _QuranGeneratorScreenState extends ConsumerState<QuranGeneratorScreen> {
             setState(() {
               _selectedSurah = value;
               _fromController.text = '1';
-              _toController.text = '1';
+              _toController.text = (value?.numberOfAyahs ?? 1).toString();
             });
           },
           decoration: const InputDecoration(
@@ -393,6 +364,12 @@ class _QuranGeneratorScreenState extends ConsumerState<QuranGeneratorScreen> {
         final fromInput = TextFormField(
           controller: _fromController,
           keyboardType: TextInputType.number,
+          onChanged: (val) {
+            final num = int.tryParse(val) ?? 1;
+            final max = _selectedSurah?.numberOfAyahs ?? 1;
+            if (num > max) _fromController.text = max.toString();
+            if (num < 1) _fromController.text = '1';
+          },
           decoration: const InputDecoration(
             labelText: 'من آية',
             border: OutlineInputBorder(),
@@ -402,6 +379,12 @@ class _QuranGeneratorScreenState extends ConsumerState<QuranGeneratorScreen> {
         final toInput = TextFormField(
           controller: _toController,
           keyboardType: TextInputType.number,
+          onChanged: (val) {
+            final num = int.tryParse(val) ?? 1;
+            final max = _selectedSurah?.numberOfAyahs ?? 1;
+            if (num > max) _toController.text = max.toString();
+            if (num < 1) _toController.text = '1';
+          },
           decoration: const InputDecoration(
             labelText: 'إلى آية',
             border: OutlineInputBorder(),
@@ -603,12 +586,6 @@ class _QuranGeneratorScreenState extends ConsumerState<QuranGeneratorScreen> {
 
   Future<void> _onGenerate() async {
     if (_selectedReciter == null || _selectedSurah == null) return;
-    if (_selectedReciter!.id == 'custom_audio' && _customAudioPath == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('من فضلك اختر ملف الصوت أولاً')),
-      );
-      return;
-    }
 
     final fromAyah = int.tryParse(_fromController.text) ?? 1;
     final toAyah = int.tryParse(_toController.text) ?? fromAyah;
@@ -621,7 +598,6 @@ class _QuranGeneratorScreenState extends ConsumerState<QuranGeneratorScreen> {
       toAyah: toAyah,
       durationSeconds: duration,
       filter: _selectedFilter.copyWith(backgroundPaths: _selectedMediaPaths),
-      customAudioPath: _customAudioPath,
       backgroundPaths: _selectedMediaPaths,
     );
 

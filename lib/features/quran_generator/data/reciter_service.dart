@@ -128,11 +128,6 @@ class ReciterService {
         name: 'سعد الغامدي',
         directory: 'Ghamadi_40kbps',
       ),
-      Reciter(
-        id: 'custom_audio',
-        name: 'رفع ملف صوتي من الجهاز ✨',
-        directory: 'custom',
-      ),
     ];
   }
 

@@ -33,33 +33,31 @@ class VideoRenderService {
     final args = <String>[];
 
     // Background Inputs
-    if (filter.backgroundType == BackgroundType.solidColor) {
+    final bool hasFiles = backgroundFiles != null && backgroundFiles.isNotEmpty;
+    final isVideoType = filter.backgroundType == BackgroundType.videoFile;
+
+    if (filter.backgroundType == BackgroundType.solidColor || !hasFiles) {
+      // Use solid color as fallback if no files are provided, even if type is image/video
       final color = filter.backgroundColor ?? const Color(0xFF000000);
       args.addAll([
         '-f', 'lavfi',
         '-i', 'color=c=${_colorToHex(color)}:s=${width}x$height:r=$fps:d=$totalDuration',
       ]);
-    } else if (filter.backgroundType == BackgroundType.videoFile) {
-      if (backgroundFiles == null || backgroundFiles.isEmpty) {
-        throw ProcessingException('Background video is missing');
-      }
+    } else if (isVideoType) {
       args.addAll([
         '-stream_loop', '-1',
         '-i', backgroundFiles.first.path,
       ]);
     } else {
       // Image or Gradient (Slideshow or single)
-      if (backgroundFiles == null || backgroundFiles.isEmpty) {
-        throw ProcessingException('Background image is missing');
-      }
       for (final file in backgroundFiles) {
         args.addAll(['-loop', '1', '-i', file.path]);
       }
     }
 
     // Text Image Inputs
-    final bgInputCount = (filter.backgroundType == BackgroundType.solidColor || 
-                          filter.backgroundType == BackgroundType.videoFile) ? 1 : (backgroundFiles?.length ?? 1);
+    final bgInputCount = (filter.backgroundType == BackgroundType.solidColor || !hasFiles || isVideoType) 
+        ? 1 : backgroundFiles.length;
     
     for (final image in textImages) {
       args.addAll(['-i', image.path]);
