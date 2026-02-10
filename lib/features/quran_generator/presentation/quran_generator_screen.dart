@@ -614,10 +614,12 @@ class _QuranGeneratorScreenState extends ConsumerState<QuranGeneratorScreen> {
             ),
             const SizedBox(width: 8),
             Expanded(
-              child: ElevatedButton.icon(
-                onPressed: _shareOutput,
-                icon: const Icon(Icons.share),
-                label: const Text('مشاركة'),
+              child: Builder(
+                builder: (btnContext) => ElevatedButton.icon(
+                  onPressed: () => _shareOutput(btnContext),
+                  icon: const Icon(Icons.share),
+                  label: const Text('مشاركة'),
+                ),
               ),
             ),
           ],
@@ -687,12 +689,19 @@ class _QuranGeneratorScreenState extends ConsumerState<QuranGeneratorScreen> {
     }
   }
 
-  Future<void> _shareOutput() async {
+  Future<void> _shareOutput(BuildContext context) async {
     final outputPath = ref.read(generationProvider).outputPath;
     if (outputPath == null) return;
+    
+    // Calculate the anchor for iOS/iPadOS sharing
+    final box = context.findRenderObject() as RenderBox?;
+    final origin = box != null 
+        ? box.localToGlobal(Offset.zero) & box.size 
+        : null;
+
     final storage = StorageService();
     try {
-      await storage.shareMedia(outputPath);
+      await storage.shareMedia(outputPath, sharePositionOrigin: origin);
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(

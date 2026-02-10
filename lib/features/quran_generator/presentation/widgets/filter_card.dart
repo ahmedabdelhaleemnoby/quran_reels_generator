@@ -58,6 +58,21 @@ class FilterCard extends StatelessWidget {
                 child: Stack(
                   fit: StackFit.expand,
                   children: [
+                    if (filter.defaultBackgroundUrl != null)
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(12),
+                        child: Image.network(
+                          filter.defaultBackgroundUrl!,
+                          fit: BoxFit.cover,
+                          errorBuilder: (_, __, ___) => const SizedBox.shrink(),
+                          loadingBuilder: (context, child, loadingProgress) {
+                            if (loadingProgress == null) return child;
+                            return const Center(
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            );
+                          },
+                        ),
+                      ),
                     // Subtle Pattern Overlay
                     Opacity(
                       opacity: 0.1,

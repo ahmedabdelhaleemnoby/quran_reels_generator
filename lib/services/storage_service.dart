@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:ui';
 
 import 'package:flutter/foundation.dart';
 import 'package:path_provider/path_provider.dart';
@@ -94,20 +95,32 @@ class StorageService {
   }
 
   /// Share media file
-  Future<void> shareMedia(String filePath) async {
+  Future<void> shareMedia(String filePath, {Rect? sharePositionOrigin}) async {
     try {
       final file = File(filePath);
       if (!await file.exists()) {
-        throw FileException('File not found', filePath);
+        throw FileException('الملف غير موجود', filePath);
       }
 
+      final fileName = filePath.split('/').last;
+      
+      // Explicitly providing MIME type and subject improves reliability on iOS
       await Share.shareXFiles(
-        [XFile(filePath)],
-        text: 'Shared from ${AppConstants.appName}',
+        [
+          XFile(
+            filePath,
+            name: fileName,
+            mimeType: 'video/mp4',
+          )
+        ],
+        text: 'تم إنتاجه عبر تطبيق #مع_القرآن',
+        subject: 'تطبيق مع القرآن - مشاركة فيديو',
+        sharePositionOrigin: sharePositionOrigin,
       );
     } catch (e) {
+      debugPrint('Error sharing file: $e');
       if (e is AppException) rethrow;
-      throw StorageException('Failed to share file', e.toString());
+      throw StorageException('فشل مشاركة الملف', e.toString());
     }
   }
 

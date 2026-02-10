@@ -1,8 +1,8 @@
 /// App-wide constants
 class AppConstants {
   // App Info
-  static const String appName = 'Quran Status Generator';
-  static const String appNameAr = 'مولد حالات قرآنيه';
+  static const String appName = 'مع القرآن';
+  static const String appNameAr = 'مع القرآن';
   
   // Supported Media Types
   static const List<String> supportedImageExtensions = ['jpg', 'jpeg', 'png'];

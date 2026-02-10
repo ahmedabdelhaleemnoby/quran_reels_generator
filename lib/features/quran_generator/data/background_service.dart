@@ -1,12 +1,35 @@
 import 'dart:io';
 import 'dart:ui' as ui;
 
+import 'package:http/http.dart' as http;
 import 'package:image/image.dart' as img;
 import 'package:path/path.dart' as p;
 
 import '../../../core/errors/exceptions.dart';
 
 class BackgroundService {
+  BackgroundService({http.Client? client}) : _client = client ?? http.Client();
+
+  final http.Client _client;
+
+  Future<File> downloadBackgroundImage({
+    required String url,
+    required Directory outputDir,
+    required String fileName,
+  }) async {
+    final outputPath = p.join(outputDir.path, fileName);
+    final file = File(outputPath);
+    if (await file.exists()) return file;
+
+    final response = await _client.get(Uri.parse(url));
+    if (response.statusCode != 200) {
+      throw ProcessingException('فشل تحميل خلفية الطبيعة', url);
+    }
+
+    await file.writeAsBytes(response.bodyBytes);
+    return file;
+  }
+
   Future<File> createGradientBackground({
     required Directory outputDir,
     required int width,

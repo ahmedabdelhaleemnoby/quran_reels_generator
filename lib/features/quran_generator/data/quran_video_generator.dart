@@ -129,6 +129,17 @@ class QuranVideoGenerator {
       if (filter.backgroundPaths != null && filter.backgroundPaths!.isNotEmpty) {
         return filter.backgroundPaths!.map((p) => File(p)).toList();
       }
+      
+      // Fallback to default background URL if available
+      if (filter.defaultBackgroundUrl != null) {
+        final fileName = 'default_bg_${filter.id}.jpg';
+        final file = await _backgroundService.downloadBackgroundImage(
+          url: filter.defaultBackgroundUrl!,
+          outputDir: tempDir,
+          fileName: fileName,
+        );
+        return [file];
+      }
     }
 
     return null;

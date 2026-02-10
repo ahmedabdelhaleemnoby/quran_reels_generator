@@ -30,6 +30,7 @@ class FilterTheme {
   final bool showAyahNumber;
   final bool showReciterName;
   final DecorationPattern decorationPattern;
+  final String? defaultBackgroundUrl;
 
   const FilterTheme({
     required this.id,
@@ -53,6 +54,7 @@ class FilterTheme {
     this.showAyahNumber = true,
     this.showReciterName = true,
     this.decorationPattern = DecorationPattern.none,
+    this.defaultBackgroundUrl,
   });
 
   FilterTheme copyWith({
@@ -77,6 +79,7 @@ class FilterTheme {
     bool? showAyahNumber,
     bool? showReciterName,
     DecorationPattern? decorationPattern,
+    String? defaultBackgroundUrl,
   }) {
     return FilterTheme(
       id: id ?? this.id,
@@ -100,6 +103,7 @@ class FilterTheme {
       showAyahNumber: showAyahNumber ?? this.showAyahNumber,
       showReciterName: showReciterName ?? this.showReciterName,
       decorationPattern: decorationPattern ?? this.decorationPattern,
+      defaultBackgroundUrl: defaultBackgroundUrl ?? this.defaultBackgroundUrl,
     );
   }
 }
@@ -153,7 +157,7 @@ class FilterThemes {
     FilterTheme(
       id: 'mountain_serenity',
       name: 'جمال الجبال',
-      backgroundType: BackgroundType.videoFile,
+      backgroundType: BackgroundType.imageFile,
       fontFamily: 'Amiri',
       fontSize: 60,
       textColor: Color(0xFFF0F0F0),
@@ -162,11 +166,12 @@ class FilterThemes {
       textPosition: TextPosition.center,
       textAnimation: TextAnimation.fade,
       lineSpacing: 16,
+      defaultBackgroundUrl: 'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&q=80&w=1080&h=1920',
     ),
     FilterTheme(
       id: 'forest_echo',
       name: 'سكينة الغابة',
-      backgroundType: BackgroundType.videoFile,
+      backgroundType: BackgroundType.imageFile,
       fontFamily: 'Amiri',
       fontSize: 58,
       textColor: Color(0xFFE8F5E9),
@@ -175,6 +180,7 @@ class FilterThemes {
       textPosition: TextPosition.bottom,
       textAnimation: TextAnimation.fade,
       lineSpacing: 14,
+      defaultBackgroundUrl: 'https://images.unsplash.com/photo-1441974231531-c6227db76b6e?auto=format&fit=crop&q=80&w=1080&h=1920',
     ),
   ];
 }
