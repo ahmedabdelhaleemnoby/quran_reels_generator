@@ -90,7 +90,7 @@ class TextRenderService {
           textDirection: TextDirection.rtl,
           fontSize: filter.fontSize,
           fontFamily: filter.fontFamily,
-          height: filter.lineSpacing / filter.fontSize,
+          height: 1.0 + (filter.lineSpacing / 50.0), // Higher base spacing
         ),
       )..pushStyle(ui.TextStyle(
           foreground: Paint()
@@ -119,7 +119,7 @@ class TextRenderService {
         textDirection: TextDirection.rtl,
         fontSize: filter.fontSize,
         fontFamily: filter.fontFamily,
-        height: filter.lineSpacing / filter.fontSize,
+        height: 1.0 + (filter.lineSpacing / 50.0), // Higher base spacing
       ),
     )..pushStyle(ui.TextStyle(
         color: filter.textColor,
@@ -145,6 +145,7 @@ class TextRenderService {
           textDirection: TextDirection.rtl,
           fontSize: (filter.fontSize * 0.4).clamp(14, 28),
           fontFamily: filter.fontFamily,
+          height: 1.2, // Improved alignment for footer
         ),
       )..pushStyle(ui.TextStyle(
           color: filter.textColor.withAlpha(200),

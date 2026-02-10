@@ -108,7 +108,7 @@ class _QuranGeneratorScreenState extends ConsumerState<QuranGeneratorScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('سكينة القرآن - Quran Serenity'),
+        title: const Text('مع القرآن - Quran Serenity'),
         centerTitle: true,
       ),
       body: SafeArea(

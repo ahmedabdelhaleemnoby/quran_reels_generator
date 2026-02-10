@@ -64,8 +64,8 @@ class VideoRenderService {
       args.addAll(['-i', image.path]);
     }
 
-    // Audio Input
-    args.addAll(['-i', audioFile.path]);
+    // Audio Input (with slight offset to fix sync lag: images come before sound)
+    args.addAll(['-itsoffset', '0.3', '-i', audioFile.path]);
 
     final audioInputIdx = bgInputCount + textImages.length;
 
