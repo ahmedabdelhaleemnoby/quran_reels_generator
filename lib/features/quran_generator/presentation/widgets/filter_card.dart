@@ -55,15 +55,37 @@ class FilterCard extends StatelessWidget {
                         )
                       : null,
                 ),
-                child: Center(
-                  child: Text(
-                    '﴿آية﴾',
-                    style: TextStyle(
-                      color: filter.textColor,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 18,
+                child: Stack(
+                  fit: StackFit.expand,
+                  children: [
+                    // Subtle Pattern Overlay
+                    Opacity(
+                      opacity: 0.1,
+                      child: Icon(Icons.grid_on, color: filter.textColor, size: 100),
                     ),
-                  ),
+                    Center(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            Icons.auto_stories,
+                            color: filter.textColor.withAlpha(180),
+                            size: 24,
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            'آية',
+                            style: TextStyle(
+                              color: filter.textColor,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 16,
+                              fontFamily: filter.fontFamily,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ),

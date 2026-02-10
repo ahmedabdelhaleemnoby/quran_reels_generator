@@ -76,6 +76,13 @@ dev_dependencies:
   # Code Generation
   build_runner: ^2.4.8
   riverpod_generator: ^2.3.9
+  flutter_launcher_icons: ^0.13.1
+
+flutter_launcher_icons:
+  android: "launcher_icon"
+  ios: true
+  image_path: "assets/images/app_icon.png"
+  min_sdk_android: 21
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec

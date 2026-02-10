@@ -12,6 +12,7 @@ class TextRenderService {
     required List<String> ayahs,
     required FilterTheme filter,
     required String surahName,
+    required String reciterName,
     required int fromAyah,
     required Directory outputDir,
     required int width,
@@ -24,15 +25,19 @@ class TextRenderService {
       
       var infoLine = '';
       if (filter.showSurahName) infoLine += surahName;
-      if (filter.showAyahNumber) infoLine += ' - آية $currentAyahNumber';
-      
-      if (infoLine.isNotEmpty) {
-        displayText = '$displayText\n\n($infoLine)';
+      if (filter.showAyahNumber) {
+        if (infoLine.isNotEmpty) infoLine += ' - ';
+        infoLine += 'آية $currentAyahNumber';
+      }
+      if (filter.showReciterName) {
+        if (infoLine.isNotEmpty) infoLine += ' - ';
+        infoLine += reciterName;
       }
 
       final fileName = 'ayah_$i.png';
       final file = await _renderSingleImage(
         text: displayText,
+        infoLine: infoLine,
         filter: filter,
         outputDir: outputDir,
         width: width,
@@ -53,6 +58,7 @@ class TextRenderService {
   }) async {
     return _renderSingleImage(
       text: text,
+      infoLine: '',
       filter: filter,
       outputDir: outputDir,
       width: width,
@@ -63,6 +69,7 @@ class TextRenderService {
 
   Future<File> _renderSingleImage({
     required String text,
+    required String infoLine,
     required FilterTheme filter,
     required Directory outputDir,
     required int width,
@@ -126,9 +133,39 @@ class TextRenderService {
     final x = (width - fillParagraph.width) / 2;
     final y = filter.textPosition == TextPosition.center
         ? (height - fillParagraph.height) / 2
-        : (height - fillParagraph.height - 200);
+        : (height - fillParagraph.height - 250); // Moved slightly up to make room for footer
 
     canvas.drawParagraph(fillParagraph, Offset(x, y));
+
+    // Draw Footer (infoLine) at the bottom
+    if (infoLine.isNotEmpty) {
+      final footerBuilder = ui.ParagraphBuilder(
+        ui.ParagraphStyle(
+          textAlign: TextAlign.center,
+          textDirection: TextDirection.rtl,
+          fontSize: (filter.fontSize * 0.4).clamp(14, 28),
+          fontFamily: filter.fontFamily,
+        ),
+      )..pushStyle(ui.TextStyle(
+          color: filter.textColor.withAlpha(200),
+          fontWeight: FontWeight.bold,
+        ))
+       ..addText(infoLine);
+
+      final footerParagraph = footerBuilder.build();
+      footerParagraph.layout(ui.ParagraphConstraints(width: width.toDouble() * 0.9));
+      
+      final footerX = (width - footerParagraph.width) / 2;
+      final footerY = height - footerParagraph.height - 60; // Fixed offset from bottom
+      
+      // Draw a subtle shadow/glow for footer
+      canvas.drawRect(
+        Rect.fromLTWH(footerX - 10, footerY - 5, footerParagraph.width + 20, footerParagraph.height + 10),
+        Paint()..color = Colors.black26..maskFilter = const MaskFilter.blur(BlurStyle.normal, 10),
+      );
+
+      canvas.drawParagraph(footerParagraph, Offset(footerX, footerY));
+    }
 
     final picture = recorder.endRecording();
     final img = await picture.toImage(width, height);

@@ -78,6 +78,7 @@ class QuranVideoGenerator {
       ayahs: ayahTexts,
       filter: request.filter,
       surahName: request.surah.name,
+      reciterName: request.reciter.name,
       fromAyah: request.fromAyah,
       outputDir: tempDir,
       width: targetWidth,

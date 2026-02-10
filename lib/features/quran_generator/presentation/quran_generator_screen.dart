@@ -108,7 +108,7 @@ class _QuranGeneratorScreenState extends ConsumerState<QuranGeneratorScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('مولد حالات قرآنيه الاحترافي'),
+        title: const Text('سكينة القرآن - Quran Serenity'),
         centerTitle: true,
       ),
       body: SafeArea(
@@ -117,7 +117,7 @@ class _QuranGeneratorScreenState extends ConsumerState<QuranGeneratorScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              _buildSectionTitle('1. اختيار السورة والقارئ'),
+              _buildSectionTitle('1. اختيار السورة والقارئ', Icons.book_outlined),
               const SizedBox(height: 12),
               _buildDropdownRow(
                 recitersAsync: recitersAsync,
@@ -126,21 +126,23 @@ class _QuranGeneratorScreenState extends ConsumerState<QuranGeneratorScreen> {
               const SizedBox(height: 16),
               _buildAyahInputs(),
               const SizedBox(height: 24),
-              _buildSectionTitle('2. الفلاتر الجاهزة'),
-              const SizedBox(height: 12),
-              _buildFiltersGrid(),
-              const SizedBox(height: 24),
-              _buildSectionTitle('3. تخصيص المظهر (الاستايل)'),
-              const SizedBox(height: 12),
-              _buildStylingControls(),
-              const SizedBox(height: 12),
-              _buildDisplayToggles(),
-              const SizedBox(height: 24),
-              _buildSectionTitle('4. اختيار الخلفيات (حتى 10 صور أو فيديو)'),
-              const SizedBox(height: 12),
-              _buildMediaPicker(),
-              const SizedBox(height: 24),
-              _buildGenerateButton(generationState),
+               _buildSectionTitle('2. الفلاتر الجاهزة', Icons.auto_awesome_outlined),
+               const SizedBox(height: 12),
+               _buildFiltersGrid(),
+               const SizedBox(height: 24),
+               _buildSectionTitle('3. تخصيص المظهر (الاستايل)', Icons.brush_outlined),
+               const SizedBox(height: 12),
+               _buildStylingControls(),
+               const SizedBox(height: 24),
+               _buildSectionTitle('4. اختيار الخلفيات', Icons.collections_outlined),
+               const SizedBox(height: 12),
+               _buildMediaPicker(),
+               const SizedBox(height: 24),
+               _buildSectionTitle('5. خيارات العرض', Icons.visibility_outlined),
+               const SizedBox(height: 12),
+               _buildDisplayToggles(),
+               const SizedBox(height: 24),
+               _buildGenerateButton(generationState),
               const SizedBox(height: 16),
               if (generationState.isGenerating) _buildProgress(generationState),
               if (generationState.error != null) _buildError(generationState.error!),
@@ -154,19 +156,32 @@ class _QuranGeneratorScreenState extends ConsumerState<QuranGeneratorScreen> {
     );
   }
 
-  Widget _buildSectionTitle(String title) {
+  Widget _buildSectionTitle(String title, IconData icon) {
     return Container(
-      padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
+      padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 16),
       decoration: BoxDecoration(
-        color: Theme.of(context).primaryColor.withAlpha(20),
-        borderRadius: BorderRadius.circular(8),
+        gradient: LinearGradient(
+          colors: [
+            Theme.of(context).primaryColor.withAlpha(40),
+            Theme.of(context).primaryColor.withAlpha(5),
+          ],
+        ),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Theme.of(context).primaryColor.withAlpha(30)),
       ),
-      child: Text(
-        title,
-        style: Theme.of(context).textTheme.titleMedium?.copyWith(
-              fontWeight: FontWeight.bold,
-              color: Theme.of(context).primaryColor,
-            ),
+      child: Row(
+        children: [
+          Icon(icon, size: 20, color: Theme.of(context).primaryColor),
+          const SizedBox(width: 10),
+          Text(
+            title,
+            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.bold,
+                  color: Theme.of(context).primaryColor,
+                  letterSpacing: 0.5,
+                ),
+          ),
+        ],
       ),
     );
   }
@@ -392,11 +407,17 @@ class _QuranGeneratorScreenState extends ConsumerState<QuranGeneratorScreen> {
         );
 
         if (isWide) {
-          return Row(
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Expanded(child: fromInput),
-              const SizedBox(width: 12),
-              Expanded(child: toInput),
+              Row(
+                children: [
+                  Expanded(child: fromInput),
+                  const SizedBox(width: 12),
+                  Expanded(child: toInput),
+                ],
+              ),
+              _buildAyahRangeWarning(),
             ],
           );
         } else {
@@ -405,11 +426,37 @@ class _QuranGeneratorScreenState extends ConsumerState<QuranGeneratorScreen> {
               fromInput,
               const SizedBox(height: 12),
               toInput,
+              _buildAyahRangeWarning(),
             ],
           );
         }
       },
     );
+  }
+
+  Widget _buildAyahRangeWarning() {
+    final from = int.tryParse(_fromController.text) ?? 1;
+    final to = int.tryParse(_toController.text) ?? 1;
+    final count = (to - from + 1).abs();
+
+    if (count > 20) {
+      return Padding(
+        padding: const EdgeInsets.only(top: 8),
+        child: Row(
+          children: [
+            const Icon(Icons.warning_amber_rounded, color: Colors.orange, size: 16),
+            const SizedBox(width: 4),
+            Expanded(
+              child: Text(
+                'تنبيه: النطاق كبير ($count آية). قد يستغرق التوليد وقتاً أطول.',
+                style: const TextStyle(color: Colors.orange, fontSize: 11),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+    return const SizedBox.shrink();
   }
 
   Widget _buildFiltersGrid() {
@@ -520,7 +567,7 @@ class _QuranGeneratorScreenState extends ConsumerState<QuranGeneratorScreen> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         const SizedBox(height: 12),
-        _buildSectionTitle('المعاينة النهائية'),
+        _buildSectionTitle('المعاينه النهائيه', Icons.play_circle_outline),
         const SizedBox(height: 12),
         AspectRatio(
           aspectRatio: 9 / 16,
@@ -587,8 +634,21 @@ class _QuranGeneratorScreenState extends ConsumerState<QuranGeneratorScreen> {
   Future<void> _onGenerate() async {
     if (_selectedReciter == null || _selectedSurah == null) return;
 
-    final fromAyah = int.tryParse(_fromController.text) ?? 1;
-    final toAyah = int.tryParse(_toController.text) ?? fromAyah;
+    var fromAyah = int.tryParse(_fromController.text) ?? 1;
+    var toAyah = int.tryParse(_toController.text) ?? fromAyah;
+    
+    // Stability Limit: Max 50 ayahs
+    if ((toAyah - fromAyah + 1).abs() > 50) {
+      toAyah = fromAyah + 49;
+      if (toAyah > (_selectedSurah?.numberOfAyahs ?? 1)) {
+        toAyah = _selectedSurah?.numberOfAyahs ?? 1;
+      }
+      _toController.text = toAyah.toString();
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('تم تقليل النطاق لـ 50 آية لضمان استقرار التطبيق')),
+      );
+    }
+
     final duration = int.tryParse(_durationController.text) ?? 20;
 
     final request = GenerationRequest(

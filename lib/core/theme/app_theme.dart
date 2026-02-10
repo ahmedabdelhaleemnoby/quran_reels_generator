@@ -6,9 +6,9 @@ class AppTheme {
   AppTheme._();
 
   // Color palette
-  static const Color primaryColor = Color(0xFF1E5E4F);
-  static const Color secondaryColor = Color(0xFFC9A227);
-  static const Color accentColor = Color(0xFF3B82F6);
+  static const Color primaryColor = Color(0xFF00695C); // Deep Emerald
+  static const Color secondaryColor = Color(0xFFBF9B30); // Deep Gold
+  static const Color accentColor = Color(0xFFE0F2F1); // Soft Mint
   
   // Light theme colors
   static const Color lightBackground = Color(0xFFF6F5F0);
@@ -44,9 +44,11 @@ class AppTheme {
     
     cardTheme: CardThemeData(
       color: lightSurface,
-      elevation: 2,
+      elevation: 3,
+      shadowColor: primaryColor.withAlpha(20),
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(20),
+        side: BorderSide(color: primaryColor.withAlpha(10)),
       ),
     ),
     
@@ -102,9 +104,11 @@ class AppTheme {
     
     cardTheme: CardThemeData(
       color: darkSurface,
-      elevation: 4,
+      elevation: 6,
+      shadowColor: Colors.black,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(20),
+        side: BorderSide(color: Colors.white10),
       ),
     ),
     

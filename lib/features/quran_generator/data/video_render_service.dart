@@ -29,7 +29,8 @@ class VideoRenderService {
       'quran_reel_${DateTime.now().millisecondsSinceEpoch}.mp4',
     );
 
-    final totalDuration = durations.fold(0.0, (sum, d) => sum + d);
+    final rawDuration = durations.fold(0.0, (sum, d) => sum + d);
+    final totalDuration = rawDuration > 60.0 ? 60.0 : rawDuration;
     final args = <String>[];
 
     // Background Inputs
@@ -97,7 +98,8 @@ class VideoRenderService {
   String _buildFilterComplex(FilterTheme filter, int bgCount, int ayahCount,
       List<double> durations, int width, int height) {
     final buffer = StringBuffer();
-    final totalDuration = durations.fold(0.0, (sum, d) => sum + d);
+    final rawDuration = durations.fold(0.0, (sum, d) => sum + d);
+    final totalDuration = rawDuration > 60.0 ? 60.0 : rawDuration;
 
     // 1. Build Background Source
     if (bgCount > 1) {
@@ -106,11 +108,9 @@ class VideoRenderService {
       buffer.write('[0:v]scale=$width:$height,setsar=1[v_slideshow0];');
       for (var i = 1; i < bgCount; i++) {
         final startTime = i * perImageDuration;
-        final prevLabel = 'v_slideshow${i - 1}';
-        final nextLabel = 'v_slideshow$i';
-        buffer.write('[$prevLabel][$i:v]scale=$width:$height,setsar=1,overlay=enable=\'gte(t,$startTime)\'[$nextLabel];');
+        final nextLabel = i == bgCount - 1 ? '[v_bg_base]' : '[v_slideshow$i]';
+        buffer.write('[v_slideshow${i - 1}][$i:v]scale=$width:$height,setsar=1,overlay=enable=\'gte(t,$startTime)\'$nextLabel;');
       }
-      buffer.write('[v_slideshow${bgCount - 1}][v_bg_base];');
     } else {
       // Single background
       buffer.write('[0:v]scale=$width:$height,setsar=1[v_bg_base];');
@@ -122,13 +122,13 @@ class VideoRenderService {
       final decorLabel = 'v_decorated';
       switch (filter.decorationPattern) {
         case DecorationPattern.hexagon:
-          buffer.write('[$currentBg]drawgrid=w=100:h=100:t=1:c=white@0.1[$decorLabel];');
+          buffer.write('[$currentBg]drawgrid=w=100:h=100:t=2:c=white@0.3[$decorLabel];');
           break;
         case DecorationPattern.dots:
-          buffer.write('[$currentBg]noise=alls=20:allf=t+u[$decorLabel];');
+          buffer.write('[$currentBg]noise=alls=50:allf=t+u[$decorLabel];');
           break;
         case DecorationPattern.islamic:
-          buffer.write('[$currentBg]vignette=angle=0.5[$decorLabel];');
+          buffer.write('[$currentBg]vignette=angle=0.5:x0=W/2:y0=H/2[$decorLabel];');
           break;
         default:
           buffer.write('[$currentBg]copy[$decorLabel];');
@@ -145,12 +145,22 @@ class VideoRenderService {
       final endTime = currentTime + durations[i];
       currentTime = endTime;
 
-      final nextLabel = i == ayahCount - 1 ? 'v_out' : 'v_ayah$i';
+      if (startTime >= 60.0) break;
+
+      final isLast = (i == ayahCount - 1) || (endTime >= 60.0);
+      final nextLabel = isLast ? 'v_out' : 'v_ayah$i';
+      final effectiveEndTime = endTime > 60.0 ? 60.0 : endTime;
       final targetY = filter.textPosition == TextPosition.center ? '(H-h)/2' : '(H-h-200)';
 
       buffer.write(
-          '[$lastVLabel][$inputIdx:v]overlay=x=(W-w)/2:y=$targetY:enable=\'between(t,$startTime,$endTime)\'[$nextLabel];');
+          '[$lastVLabel][$inputIdx:v]overlay=x=(W-w)/2:y=$targetY:enable=\'between(t,$startTime,$effectiveEndTime)\'[$nextLabel];');
       lastVLabel = nextLabel;
+      
+      if (isLast) break;
+    }
+
+    if (lastVLabel != 'v_out') {
+      buffer.write('[$lastVLabel]copy[v_out];');
     }
 
     return buffer.toString();
