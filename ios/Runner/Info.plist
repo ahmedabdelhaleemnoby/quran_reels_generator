@@ -5,7 +5,7 @@
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
 	<key>CFBundleDisplayName</key>
-	<string>مع القرآن</string>
+	<string>Ma al-Quran</string>
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>
 	<key>CFBundleIdentifier</key>
@@ -48,12 +48,12 @@
 	
 	<!-- Permissions for media access -->
 	<key>NSPhotoLibraryUsageDescription</key>
-	<string>نحتاج للوصول إلى مكتبة الصور لاختيار الصور والفيديوهات</string>
+	<string>Photo library access for backgrounds</string>
 	<key>NSPhotoLibraryAddUsageDescription</key>
-	<string>نحتاج للوصول إلى مكتبة الصور لحفظ الصور والفيديوهات المعدلة</string>
+	<string>Photo library access to save videos</string>
 	<key>NSCameraUsageDescription</key>
-	<string>نحتاج للوصول إلى الكاميرا لالتقاط الصور والفيديوهات</string>
+	<string>Camera access for backgrounds</string>
 	<key>NSMicrophoneUsageDescription</key>
-	<string>نحتاج للوصول إلى الميكروفون لتسجيل مقاطع الفيديو</string>
+	<string>Microphone access for videos</string>
 </dict>
 </plist>
