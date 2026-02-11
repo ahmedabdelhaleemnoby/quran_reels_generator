@@ -1,6 +1,7 @@
 allprojects {
     repositories {
         google()
+        maven { url = uri("https://dl.cloudsmith.io/public/arthenica/ffmpeg-kit/maven/release/") }
         mavenCentral()
     }
 }
@@ -17,6 +18,23 @@ subprojects {
 }
 subprojects {
     project.evaluationDependsOn(":app")
+    
+    repositories {
+        google()
+        maven { url = uri("https://dl.cloudsmith.io/public/arthenica/ffmpeg-kit/maven/release/") }
+        mavenCentral()
+    }
+
+    configurations.all {
+        resolutionStrategy {
+            force("com.arthenica:ffmpeg-kit-full:6.0-2.LTS")
+            eachDependency {
+                if (requested.group == "com.arthenica" && requested.name.startsWith("ffmpeg-kit")) {
+                    useVersion("6.0-2.LTS")
+                }
+            }
+        }
+    }
 }
 
 tasks.register<Delete>("clean") {
