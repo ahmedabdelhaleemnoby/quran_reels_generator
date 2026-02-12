@@ -30,12 +30,12 @@ PODS:
   - DKPhotoGallery/Resource (0.0.19):
     - SDWebImage
     - SwiftyGif
-  - ffmpeg-kit-ios-full (6.0)
-  - ffmpeg_kit_flutter_full (6.0.3):
-    - ffmpeg_kit_flutter_full/full (= 6.0.3)
+  - ffmpeg-kit-ios-full (6.0.LTS)
+  - ffmpeg_kit_flutter_full (6.0.3.LTS):
+    - ffmpeg_kit_flutter_full/full-lts (= 6.0.3.LTS)
     - Flutter
-  - ffmpeg_kit_flutter_full/full (6.0.3):
-    - ffmpeg-kit-ios-full (= 6.0)
+  - ffmpeg_kit_flutter_full/full-lts (6.0.3.LTS):
+    - ffmpeg-kit-ios-full (= 6.0.LTS)
     - Flutter
   - file_picker (0.0.1):
     - DKImagePickerController/PhotoGallery
@@ -56,7 +56,7 @@ PODS:
     - FlutterMacOS
 
 DEPENDENCIES:
-  - ffmpeg-kit-ios-full (from `https://raw.githubusercontent.com/luthviar/ffmpeg-kit-ios-full/main/ffmpeg-kit-ios-full.podspec`)
+  - ffmpeg-kit-ios-full (from `./ffmpeg-kit-ios-full.podspec`)
   - ffmpeg_kit_flutter_full (from `.symlinks/plugins/ffmpeg_kit_flutter_full/ios`)
   - file_picker (from `.symlinks/plugins/file_picker/ios`)
   - Flutter (from `Flutter`)
@@ -74,7 +74,7 @@ SPEC REPOS:
 
 EXTERNAL SOURCES:
   ffmpeg-kit-ios-full:
-    :podspec: https://raw.githubusercontent.com/luthviar/ffmpeg-kit-ios-full/main/ffmpeg-kit-ios-full.podspec
+    :podspec: "./ffmpeg-kit-ios-full.podspec"
   ffmpeg_kit_flutter_full:
     :path: ".symlinks/plugins/ffmpeg_kit_flutter_full/ios"
   file_picker:
@@ -93,8 +93,8 @@ EXTERNAL SOURCES:
 SPEC CHECKSUMS:
   DKImagePickerController: 946cec48c7873164274ecc4624d19e3da4c1ef3c
   DKPhotoGallery: b3834fecb755ee09a593d7c9e389d8b5d6deed60
-  ffmpeg-kit-ios-full: 2da77324b0e9fb007195ab6661f64be4cf31dc12
-  ffmpeg_kit_flutter_full: 0f013270b9743e39e78b6d2f0fa53ebac0259af4
+  ffmpeg-kit-ios-full: 532627820c5a8b4eacfa0a508710cb270d92edca
+  ffmpeg_kit_flutter_full: e54b3333a3a05d38705da9f5fd266696cf497849
   file_picker: a0560bc09d61de87f12d246fc47d2119e6ef37be
   Flutter: cabc95a1d2626b1b06e7179b784ebcf0c0cde467
   image_picker_ios: e0ece4aa2a75771a7de3fa735d26d90817041326
@@ -104,6 +104,6 @@ SPEC CHECKSUMS:
   SwiftyGif: 706c60cf65fa2bc5ee0313beece843c8eb8194d4
   video_player_avfoundation: dd410b52df6d2466a42d28550e33e4146928280a
 
-PODFILE CHECKSUM: 14ca94aaafdcd8ceb8a2ffdd6e21caa0409febd3
+PODFILE CHECKSUM: c9f43f7b4d45e9c0ee25641b6d0a30cfcbbf951d
 
 COCOAPODS: 1.16.2

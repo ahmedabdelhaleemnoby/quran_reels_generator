@@ -675,17 +675,15 @@ class _QuranGeneratorScreenState extends ConsumerState<QuranGeneratorScreen> {
     final storage = StorageService();
     try {
       final savedPath = await storage.saveToGallery(outputPath);
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('تم الحفظ في: $savedPath')),
-        );
-      }
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('تم الحفظ في: $savedPath')),
+      );
     } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('خطأ في الحفظ: $e')),
-        );
-      }
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('خطأ في الحفظ: $e')),
+      );
     }
   }
 
@@ -703,11 +701,10 @@ class _QuranGeneratorScreenState extends ConsumerState<QuranGeneratorScreen> {
     try {
       await storage.shareMedia(outputPath, sharePositionOrigin: origin);
     } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('خطأ في المشاركة: $e')),
-        );
-      }
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('خطأ في المشاركة: $e')),
+      );
     }
   }
 
@@ -729,7 +726,7 @@ class _QuranGeneratorScreenState extends ConsumerState<QuranGeneratorScreen> {
                 child: ListView.separated(
                   scrollDirection: Axis.horizontal,
                   itemCount: _selectedMediaPaths.length,
-                  separatorBuilder: (_, __) => const SizedBox(width: 8),
+                  separatorBuilder: (_, _) => const SizedBox(width: 8),
                   itemBuilder: (context, index) {
                     final path = _selectedMediaPaths[index];
                     final isVideo = path.endsWith('.mp4') || path.endsWith('.mov');

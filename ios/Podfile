@@ -30,7 +30,7 @@ target 'Runner' do
   use_frameworks!
   
   # Use community-maintained mirror for FFmpeg since official binaries are retired
-  pod 'ffmpeg-kit-ios-full', :podspec => 'https://raw.githubusercontent.com/luthviar/ffmpeg-kit-ios-full/main/ffmpeg-kit-ios-full.podspec'
+  pod 'ffmpeg-kit-ios-full', :podspec => './ffmpeg-kit-ios-full.podspec'
 
   flutter_install_all_ios_pods File.dirname(File.realpath(__FILE__))
   target 'RunnerTests' do

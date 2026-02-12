@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:video_player/video_player.dart';
 
+import '../core/providers/theme_provider.dart';
 import 'export/providers/export_provider.dart';
 import 'filters/domain/filter_model.dart';
 import 'filters/presentation/filters_bottom_sheet.dart';
@@ -22,7 +23,6 @@ class _MainScreenState extends ConsumerState<MainScreen> {
   String? _currentMediaPath;
   bool _isVideo = false;
   VideoPlayerController? _videoController;
-  bool _isDarkMode = false;
 
   @override
   void dispose() {
@@ -58,19 +58,21 @@ class _MainScreenState extends ConsumerState<MainScreen> {
       }
     });
 
+    // Theme toggle
+    final themeMode = ref.watch(themeModeProvider);
+    final isDarkMode = themeMode == ThemeMode.dark || 
+                      (themeMode == ThemeMode.system && Theme.of(context).brightness == Brightness.dark);
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('📸 فلاتر الميديا'),
         centerTitle: true,
         actions: [
-          // Theme toggle
           IconButton(
-            icon: Icon(_isDarkMode ? Icons.light_mode : Icons.dark_mode),
+            icon: Icon(isDarkMode ? Icons.light_mode : Icons.dark_mode),
             onPressed: () {
-              setState(() {
-                _isDarkMode = !_isDarkMode;
-              });
-              // TODO: Implement theme switching
+              ref.read(themeModeProvider.notifier).state = 
+                  isDarkMode ? ThemeMode.light : ThemeMode.dark;
             },
           ),
         ],

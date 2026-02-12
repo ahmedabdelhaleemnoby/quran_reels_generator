@@ -64,7 +64,7 @@ class FilterCard extends StatelessWidget {
                         child: Image.network(
                           filter.defaultBackgroundUrl!,
                           fit: BoxFit.cover,
-                          errorBuilder: (_, __, ___) => const SizedBox.shrink(),
+                          errorBuilder: (_, _, _) => const SizedBox.shrink(),
                           loadingBuilder: (context, child, loadingProgress) {
                             if (loadingProgress == null) return child;
                             return const Center(
