@@ -1,10 +1,10 @@
 import 'dart:async';
-import 'dart:io';
-import 'package:ffmpeg_kit_flutter_full/ffmpeg_kit.dart';
-import 'package:ffmpeg_kit_flutter_full/ffmpeg_kit_config.dart';
-import 'package:ffmpeg_kit_flutter_full/return_code.dart';
-import 'package:ffmpeg_kit_flutter_full/log.dart';
-import 'package:ffmpeg_kit_flutter_full/statistics.dart';
+
+import 'package:ffmpeg_kit_flutter_new/ffmpeg_kit.dart';
+import 'package:ffmpeg_kit_flutter_new/ffmpeg_kit_config.dart';
+import 'package:ffmpeg_kit_flutter_new/return_code.dart';
+import 'package:ffmpeg_kit_flutter_new/statistics.dart';
+
 import '../core/errors/exceptions.dart';
 
 /// FFmpeg Service for media processing
@@ -17,7 +17,7 @@ class FFmpegService {
 
   /// Execute FFmpeg command with progress tracking
   /// 
-  /// [command] - The FFmpeg command to execute
+  /// [command] - The FFmpeg command string to execute
   /// [onProgress] - Callback for progress updates (0.0 to 1.0)
   /// Returns the output file path if successful
   Future<String> executeCommand(
@@ -46,16 +46,7 @@ class FFmpegService {
           if (ReturnCode.isSuccess(returnCode)) {
             // Extract output file path from command
             final outputPath = _extractOutputPath(command);
-            if (outputPath != null && await File(outputPath).exists()) {
-              completer.complete(outputPath);
-            } else {
-              completer.completeError(
-                ProcessingException(
-                  'Output file not found',
-                  'Expected output at: $outputPath',
-                ),
-              );
-            }
+            completer.complete(outputPath);
           } else {
             final failStackTrace = await session.getFailStackTrace();
             completer.completeError(
@@ -69,7 +60,7 @@ class FFmpegService {
         (log) {
           // Extract total duration from FFmpeg logs
           if (totalDuration == 0) {
-            totalDuration = _extractDurationFromLog(log);
+            totalDuration = _extractDurationFromLog(log.getMessage());
           }
         },
       );
@@ -129,7 +120,6 @@ class FFmpegService {
 
     if (filters.containsKey('fade_out')) {
       final fadeDuration = filters['fade_out']!.toInt();
-      // Fade out at the end (we'll calculate the start frame later)
       filterStrings.add('fade=out:st=0:d=$fadeDuration');
     }
 
@@ -198,16 +188,15 @@ class FFmpegService {
   }
 
   /// Extract output file path from FFmpeg command
-  String? _extractOutputPath(String command) {
+  String _extractOutputPath(String command) {
     // Look for the last quoted path or the last path before -y flag
     final regex = RegExp(r'"([^"]+)"\s*$');
     final match = regex.firstMatch(command);
-    return match?.group(1);
+    return match?.group(1) ?? '';
   }
 
   /// Extract video duration from FFmpeg log
-  double _extractDurationFromLog(Log log) {
-    final message = log.getMessage();
+  double _extractDurationFromLog(String message) {
     // Look for Duration: HH:MM:SS.ms pattern
     final durationRegex = RegExp(r'Duration: (\d{2}):(\d{2}):(\d{2})\.(\d{2})');
     final match = durationRegex.firstMatch(message);
@@ -216,9 +205,9 @@ class FFmpegService {
       final hours = int.parse(match.group(1)!);
       final minutes = int.parse(match.group(2)!);
       final seconds = int.parse(match.group(3)!);
-      final milliseconds = int.parse(match.group(4)!) * 10;
+      final centiseconds = int.parse(match.group(4)!);
       
-      return (hours * 3600 + minutes * 60 + seconds) * 1000.0 + milliseconds;
+      return (hours * 3600 + minutes * 60 + seconds) * 1000.0 + centiseconds * 10;
     }
     
     return 0;

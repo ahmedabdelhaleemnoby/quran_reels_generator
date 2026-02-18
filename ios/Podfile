@@ -29,8 +29,6 @@ flutter_ios_podfile_setup
 target 'Runner' do
   use_frameworks!
   
-  # Use community-maintained mirror for FFmpeg since official binaries are retired
-  pod 'ffmpeg-kit-ios-full', :podspec => './ffmpeg-kit-ios-full.podspec'
 
   flutter_install_all_ios_pods File.dirname(File.realpath(__FILE__))
   target 'RunnerTests' do
@@ -41,5 +39,27 @@ end
 post_install do |installer|
   installer.pods_project.targets.each do |target|
     flutter_additional_ios_build_settings(target)
+    target.build_configurations.each do |config|
+      # Fix deployment target warnings
+      config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = '13.0'
+      # Fix CodeSign errors on simulator
+      config.build_settings['EXPANDED_CODE_SIGN_IDENTITY'] = ""
+      config.build_settings['CODE_SIGNING_REQUIRED'] = "NO"
+      config.build_settings['CODE_SIGNING_ALLOWED'] = "NO"
+    end
+  end
+  # Deep clean detritus that causes CodeSign failures
+  puts "Cleaning persistent metadata (detritus) from project and build directory..."
+  system("find . -name '._*' -delete")
+  system("find . -name '.DS_Store' -delete")
+  system("dot_clean -mn .")
+  system("xattr -rc .")
+  
+  # Specifically target the build directory if it exists
+  build_dir = "../build"
+  if File.directory?(build_dir)
+    system("find #{build_dir} -name '._*' -delete")
+    system("dot_clean -mn #{build_dir}")
+    system("xattr -rc #{build_dir}")
   end
 end

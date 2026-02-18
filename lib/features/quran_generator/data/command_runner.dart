@@ -1,5 +1,5 @@
-import 'package:ffmpeg_kit_flutter_full/ffmpeg_kit.dart';
-import 'package:ffmpeg_kit_flutter_full/return_code.dart';
+import 'package:ffmpeg_kit_flutter_new/ffmpeg_kit.dart';
+import 'package:ffmpeg_kit_flutter_new/return_code.dart';
 
 import '../../../core/errors/exceptions.dart';
 
@@ -22,12 +22,10 @@ class CommandRunner {
     String? workingDirectory,
   }) async {
     try {
-      // ffmpeg_kit handles the 'ffmpeg' executable name by default.
-      // For other commands (like ImageMagick), we can't use Process.run on mobile.
-      // We focus on FFmpeg commands here.
-      if (executable != 'ffmpeg') {
+      // FFmpegKit only supports ffmpeg and ffprobe
+      if (executable != 'ffmpeg' && executable != 'ffprobe') {
         throw ProcessingException(
-          'Command not supported on mobile',
+          'Command not supported',
           executable,
         );
       }
@@ -43,7 +41,10 @@ class CommandRunner {
         stderr: failStackTrace ?? '',
       );
     } catch (e) {
-      throw ProcessingException('Failed to run FFmpeg command', '$args\n$e');
+      throw ProcessingException(
+        'Failed to run $executable command',
+        '$args\n$e',
+      );
     }
   }
 }

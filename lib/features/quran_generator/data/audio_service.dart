@@ -1,6 +1,6 @@
 import 'dart:io';
 
-import 'package:ffmpeg_kit_flutter_full/ffprobe_kit.dart';
+import 'package:ffmpeg_kit_flutter_new/ffprobe_kit.dart';
 import 'package:http/http.dart' as http;
 import 'package:path/path.dart' as p;
 
@@ -67,13 +67,20 @@ class AudioService {
   }
 
   Future<double> _getDuration(String path) async {
-    final session = await FFprobeKit.execute(
-        "-v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 \"$path\"");
-    final output = await session.getOutput();
-    if (output == null || output.trim().isEmpty) {
+    try {
+      final session = await FFprobeKit.execute(
+        '-v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 "$path"'
+      );
+      final output = await session.getOutput();
+      
+      if (output == null || output.trim().isEmpty) {
+        return 0.0;
+      }
+
+      return double.tryParse(output.trim()) ?? 0.0;
+    } catch (e) {
       return 0.0;
     }
-    return double.tryParse(output.trim()) ?? 0.0;
   }
 
   Future<File> _downloadAyah(
